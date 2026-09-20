@@ -1,20 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 360" role="img" aria-label="Selvard — a privacy-first Android security environment">
-  <rect width="1280" height="360" fill="#0C1322"/>
-  <!-- contained-field motif -->
-  <rect x="920" y="100" width="160" height="160" rx="36" fill="none" stroke="#EDF1F7" stroke-width="1.5" opacity="0.05"/>
-  <rect x="960" y="140" width="80" height="80" rx="20" fill="none" stroke="#EDF1F7" stroke-width="1.5" opacity="0.09"/>
+  <rect width="1280" height="360" fill="#F6F8FB"/>
+  <!-- tied-keep motif, ghosted -->
+  <rect x="930" y="100" width="160" height="160" rx="42" fill="none" stroke="#101A2E" stroke-width="1.5" opacity="0.05"/>
+  <rect x="970" y="140" width="80" height="80" rx="21" fill="none" stroke="#101A2E" stroke-width="1.5" opacity="0.08"/>
+  <rect x="1002" y="172" width="16" height="16" rx="4" fill="#3E8E9E" opacity="0.12"/>
   <!-- logomark -->
-  <g transform="translate(104,88) scale(1.875)">
-    <path d="M 64,16 H 32 A 16 16 0 0 0 16,32 V 64 A 16 16 0 0 0 32,80 H 64 A 16 16 0 0 0 80,64 V 32"
-          fill="none" stroke="#EDF1F7" stroke-width="8" stroke-linecap="round"/>
-    <circle cx="75.3" cy="20.7" r="5.5" fill="#EDF1F7"/>
-    <rect x="40" y="40" width="16" height="16" rx="5" fill="#58B7CC"/>
+  <g transform="translate(110,89) scale(1.9)">
+    <path d="M 32,14 H 64 A 18 18 0 0 1 82,32 V 64 A 18 18 0 0 1 64,82 H 32 A 18 18 0 0 1 14,64 V 32 A 18 18 0 0 1 32,14 Z"
+          fill="none" stroke="#101A2E" stroke-width="7"/>
+    <path d="M 40,30 H 56 A 10 10 0 0 1 66,40 V 56 A 10 10 0 0 1 56,66 H 40 A 10 10 0 0 1 30,56 V 40 A 10 10 0 0 1 40,30 Z"
+          fill="none" stroke="#101A2E" stroke-width="6"/>
+    <g stroke="#101A2E" stroke-width="5" stroke-linecap="round">
+      <path d="M 19.3,19.3 L 32.9,32.9"/>
+      <path d="M 76.7,76.7 L 63.1,63.1"/>
+    </g>
+    <rect x="41" y="41" width="14" height="14" rx="4" fill="#3E8E9E"/>
   </g>
   <!-- wordmark -->
-  <text x="340" y="176" font-family="Segoe UI, 'Helvetica Neue', Arial, sans-serif" font-size="78" font-weight="700"
-        letter-spacing="13" fill="#EDF1F7">SELVARD</text>
-  <text x="342" y="228" font-family="Segoe UI, 'Helvetica Neue', Arial, sans-serif" font-size="26" font-weight="400"
-        letter-spacing="0.5" fill="#9FB0C6">A privacy-first Android security environment</text>
-  <text x="342" y="282" font-family="Segoe UI, 'Helvetica Neue', Arial, sans-serif" font-size="15.5" font-weight="600"
-        letter-spacing="3.5" fill="#4FA3B5">PROPRIETARY · LOCAL-FIRST · EVIDENCE-BASED · NO FALSE CONFIDENCE</text>
+  <text x="352" y="178" font-family="Segoe UI, 'Helvetica Neue', Arial, sans-serif" font-size="80" font-weight="700"
+        letter-spacing="13" fill="#101A2E">SELVARD</text>
+  <text x="354" y="230" font-family="Segoe UI, 'Helvetica Neue', Arial, sans-serif" font-size="26" font-weight="400"
+        letter-spacing="0.5" fill="#5A6A7E">A privacy-first Android security environment</text>
+  <text x="354" y="284" font-family="Segoe UI, 'Helvetica Neue', Arial, sans-serif" font-size="15.5" font-weight="600"
+        letter-spacing="3.5" fill="#2E7484">PROPRIETARY · LOCAL-FIRST · EVIDENCE-BASED · NO FALSE CONFIDENCE</text>
 </svg>
