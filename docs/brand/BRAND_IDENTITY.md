@@ -34,13 +34,14 @@ Pre-adoption checklist (before first public release): formal trademark search & 
 
 ## 3. Logomark
 
-**Concept: the sealed boundary and the guarded gate.** A rounded-square perimeter — the security environment — almost fully sealed. One corner stays open: the controlled entry point, guarded by a standing node (the warden at the gate). At the center, the core: the protected self. Nothing enters except through the warden.
+**Concept: the tied keep.** Reliability rendered structurally. Two complete, closed shells — the outer wall and the inner keep — are tied together by braces at opposing corners, so the structure shares load and cannot be pulled apart. The protected core sits at the exact center. The visual vocabulary is dependability itself: closure, symmetry, layered depth, braced rigidity — defense in depth made legible.
 
-Construction (viewBox 96×96, geometric, no gradients):
+Construction (viewBox 96×96, closed geometry, no gradients):
 
-- Perimeter: single path, stroke-width 8, round caps; three rounded corners (radius 16); top-right corner intentionally open.
-- Gate node: solid circle r 5.5 at the opening's arc midpoint (75.3, 20.7).
-- Core: solid rounded square 16×16 (rx 5) centered at (48, 48).
+- Outer shell: closed rounded square spanning 14–82, corner radius 18, stroke 7.
+- Inner keep: closed rounded square spanning 30–66, corner radius 10, stroke 6.
+- Corner braces: two diagonal strokes (width 5, round caps) joining the shells' 45° corner points at top-left and bottom-right (19.3,19.3→32.9,32.9 and its 180° mirror).
+- Core: solid rounded square 14×14 (rx 4), centered, accent teal.
 
 Files: `assets/brand/mark.svg` (ink on light surfaces), `assets/brand/mark-dark.svg` (for dark surfaces), `assets/brand/banner.svg` (README banner).
 
@@ -52,6 +53,7 @@ Files: `assets/brand/mark.svg` (ink on light surfaces), `assets/brand/mark-dark.
 | Ink | `#101A2E` | Mark on light surfaces, wordmark on light |
 | Off-White | `#EDF1F7` | Mark/wordmark on dark surfaces |
 | Slate | `#9FB0C6` | Secondary text |
+| Mist | `#F6F8FB` | Banner/app light surfaces |
 | Stillwater Teal | `#3E8E9E` | Accent (core) on light; `#58B7CC` on dark |
 
 Restrained, cool, institutional. Monochrome rule: the mark must remain recognizable in pure black or pure white — the core and node take the boundary's color when the accent is unavailable.
