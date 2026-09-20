@@ -34,14 +34,14 @@ Pre-adoption checklist (before first public release): formal trademark search & 
 
 ## 3. Logomark
 
-**Concept: the tied keep.** Reliability rendered structurally. Two complete, closed shells — the outer wall and the inner keep — are tied together by braces at opposing corners, so the structure shares load and cannot be pulled apart. The protected core sits at the exact center. The visual vocabulary is dependability itself: closure, symmetry, layered depth, braced rigidity — defense in depth made legible.
+**Concept: the keystone arch.** Engineering's oldest proof of reliability: an arch stands for millennia because every stone locks every other into place — and all of it holds through one stone, the keystone. The mark draws a raised arch with the keystone crowning it in accent teal, springing from piers set on a ground line, with the protected self standing centered in the passage. The story is the product: Selvard is the keystone of your device's security; you stand safe beneath it. Reliability is not decorated on — it is the structure.
 
-Construction (viewBox 96×96, closed geometry, no gradients):
+Construction (viewBox 96×96, no gradients):
 
-- Outer shell: closed rounded square spanning 14–82, corner radius 18, stroke 7.
-- Inner keep: closed rounded square spanning 30–66, corner radius 10, stroke 6.
-- Corner braces: two diagonal strokes (width 5, round caps) joining the shells' 45° corner points at top-left and bottom-right (19.3,19.3→32.9,32.9 and its 180° mirror).
-- Core: solid rounded square 14×14 (rx 4), centered, accent teal.
+- Arch: two arc segments of radius 28 centered at (48,54), stroke 9, round caps, springing from (20,54) and (76,54); the crown gap is left open for the keystone.
+- Keystone: diamond (48,17)–(56,25.5)–(48,34)–(40,25.5), accent teal fill, seated in the crown gap and rising above the arch ring — the piece that completes the structure.
+- Piers: vertical strokes (stroke 9) from the springing points; ground line: stroke 4.5 across the base — standing on solid ground.
+- Core: rounded square 12×12 (rx 3.5) centered low in the passage — the protected self.
 
 Files: `assets/brand/mark.svg` (ink on light surfaces), `assets/brand/mark-dark.svg` (for dark surfaces), `assets/brand/banner.svg` (README banner).
 
@@ -61,7 +61,7 @@ Restrained, cool, institutional. Monochrome rule: the mark must remain recogniza
 ## 5. Usage rules
 
 - Clear space: at least 25% of mark height on all sides.
-- Minimum size: 24 px digital / 8 mm print; below that use the core-and-gate glyph only.
+- Minimum size: 24 px digital / 8 mm print; below that use the arch silhouette without ground line and core detail.
 - Wordmark: "SELVARD" (caps, letter-spaced) or "Selvard" (sentence case in prose). Never "SelVard".
 - Forbidden: gradients, neon/glow effects, cyberpunk styling, shields/padlocks added to the mark, recoloring outside the palette, placing the mark on noisy imagery.
 - The identity communicates containment and calm precision — never aggression.

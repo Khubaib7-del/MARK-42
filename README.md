@@ -72,10 +72,10 @@ Implementation directories are created when their first phase begins.
 
 ## Brand
 
-Logomark: the sealed boundary with one guarded gate, protecting the core — the self-warden concept rendered in geometry.
+Logomark: the keystone arch — a raised arch that holds through its keystone, with the protected self standing centered in the passage. Selvard is the keystone of your device's security.
 
 <p align="center">
-  <img src="assets/brand/mark-dark.svg" alt="Selvard logomark" width="96">
+  <img src="assets/brand/mark.svg" alt="Selvard logomark" width="96">
 </p>
 
 Identity rules, palette, and the naming decision record live in `docs/brand/BRAND_IDENTITY.md` and `docs/decisions/ADR-008-naming-direction.md`.

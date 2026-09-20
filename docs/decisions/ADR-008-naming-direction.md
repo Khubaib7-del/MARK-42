@@ -10,7 +10,7 @@ The name must communicate containment, boundary, trust, precision, and instituti
 
 Adopt the coined name **Selvard** — *selv* (self, Old Norse *sjálfr*) + *vǫrðr* (warden, guardian): **the self-warden**. The name encodes the founding thesis of the product: the guardian stays on the user's side of the wall; trust is never outsourced; the Network Guardian never tunnels traffic to a vendor. Screening found no software, security, or brand usage — only unrelated surname noise. Confident, 2 syllables, internationally pronounceable (SEL-vard), unique token for store discoverability and search.
 
-The logomark (`assets/brand/`) renders the concept as **the tied keep**: two closed shells braced together at opposing corners, holding the core at the center — structural reliability and layered defense in one glyph. Construction, palette, and usage rules: `docs/brand/BRAND_IDENTITY.md`.
+The logomark (`assets/brand/`) renders the concept as **the keystone arch**: a raised arch that holds through its accent keystone, standing on solid ground with the protected self centered in the passage — Selvard is the keystone; you stand safe beneath. Construction, palette, and usage rules: `docs/brand/BRAND_IDENTITY.md`.
 
 ## Consequences
 
