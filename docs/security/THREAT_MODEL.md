@@ -1,6 +1,6 @@
 # Threat Model
 
-Scope: Cordon (working title), Android-first privacy-first security environment, normal third-party app constraints (no root, no device-owner, no OEM privileges).
+Scope: Selvard, Android-first privacy-first security environment, normal third-party app constraints (no root, no device-owner, no OEM privileges).
 
 Sources consulted: Android Developers documentation (VPN, package visibility, privacy indicators, tapjacking/overlay protections), Android Open Source Project (privacy indicators, enterprise/security docs), Google Play policies (VpnService, QUERY_ALL_PACKAGES, Device and Network Abuse), Play Integrity API documentation, OWASP MASVS/MSTG, abuse.ch/Spamhaus and HIBP API terms. Claims below were checked against these sources during Phase 0; re-verify at implementation time for API/policy drift.
 
