@@ -1,13 +1,19 @@
-# ADR-008: Product naming direction (working title "Cordon")
+# ADR-008: Product naming direction
 
-**Status:** Proposed (Phase 0) — final naming deliberately deferred to Phase 9 branding workflow
+**Status:** Accepted (Phase 0) — name adopted: **Selvard**
 
 ## Context
-Name must communicate: containment, boundary, trust, precision, institutional quality; be pronounceable internationally; avoid generic "Cyber/Shield/Guard/Secure" patterns; be trademark-searchable and domain-viable. Final identity requires the spec's full branding workflow (§53), which is out of Phase 0 scope.
+
+The name must communicate containment, boundary, trust, precision, and institutional quality; be pronounceable internationally; avoid generic "Cyber/Shield/Guard/Secure/360" patterns; and be trademark-viable for a proprietary product. Phase 0 screening (documented in `docs/brand/BRAND_IDENTITY.md` §2) found that **every natural-word candidate was already in use in the security/software industry**: Cordon (3 active security products), Redoubt, Limen, Glacis, Cardea, Merlon, Lares, Vorn, Vallum, Verja, Stillward, QuietKeep (an existing security infrastructure product), Innerkeep (adjacent to a funded brand). Single-word and obvious-compound space is saturated.
 
 ## Decision
-Use working title **"Cordon"** for engineering references only. Candidate set to evaluate in Phase 9 (descriptive, not final): *Cordon* (containment line — strong concept match, unusual, pronounceable), *Limen* (threshold/boundary, abstract), *Perimeter One* (too generic), *Bulwark* (overused in security), *Interstice* (too obscure). Each requires: trademark search, domain availability, international pronunciation check, app-store discoverability check. Logo development follows spec §53 order (concept -> geometry -> silhouette -> monochrome -> small-scale -> app icon -> wordmark).
+
+Adopt the coined name **Selvard** — *selv* (self, Old Norse *sjálfr*) + *vǫrðr* (warden, guardian): **the self-warden**. The name encodes the founding thesis of the product: the guardian stays on the user's side of the wall; trust is never outsourced; the Network Guardian never tunnels traffic to a vendor. Screening found no software, security, or brand usage — only unrelated surname noise. Confident, 2 syllables, internationally pronounceable (SEL-vard), unique token for store discoverability and search.
+
+The logomark (`assets/brand/`) renders the concept: a sealed boundary with one guarded gate, protecting the core. Construction, palette, and usage rules: `docs/brand/BRAND_IDENTITY.md`.
 
 ## Consequences
-- + No naming debt blocking engineering; documented candidates and criteria.
-- − "Cordon" must not leak into user-facing copy until the naming decision is final.
+
+- + A distinctive, ownable, meaning-rich identity with no same-industry collisions; the story explains itself ("self-warden").
+- − Pre-release obligations remain: formal trademark search/registration (Class 9/42), domain acquisition (`selvard.com`/`selvard.app`), app-store handle reservation. Web screening is evidence of availability, not a legal clearance.
+- All working-title references ("Cordon") were scrubbed from documentation at adoption; ADR-009/ADR-010 unaffected.

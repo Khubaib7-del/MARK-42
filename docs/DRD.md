@@ -61,7 +61,7 @@ Schema is append-only and versioned (`schema_version`). Migrations never rewrite
 
 - No user accounts in MVP. There is no login; the app is local-first.
 - App access protection (optional): Android BiometricPrompt gate for the app and for Identity Exposure data specifically.
-- Component authorization: exported components limited to a share-target Activity (Link Guardian entry). Deep links for `cordon://check?url=…` are allowed only with user-confirmation screen (no auto-navigation to sensitive state).
+- Component authorization: exported components limited to a share-target Activity (Link Guardian entry). Deep links for `selvard://check?url=…` are allowed only with user-confirmation screen (no auto-navigation to sensitive state).
 - Backend (if introduced): mTLS or token-based, least privilege; backend can never override a local BLOCK with an unauthenticated remote instruction.
 
 ## 6. Encryption & storage

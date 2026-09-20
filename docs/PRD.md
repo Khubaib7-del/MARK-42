@@ -1,6 +1,6 @@
 # Product Requirements Document
 
-Project: Cordon (working title) — Privacy-first Android security environment
+Project: Selvard — Privacy-first Android security environment
 Phase: 0 (Foundation) | Status: Draft v1.0 | Owner: Core team
 
 ## 1. Problem

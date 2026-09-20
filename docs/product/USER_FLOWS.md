@@ -4,7 +4,7 @@ Flows define behavior before UI exists (per specification: engineering first, UI
 
 ## F1 — Check a suspicious link (primary flow)
 
-1. User long-presses link in SMS/chat -> Share -> "Check link" (Cordon share target). *(Manual paste variant: open app -> paste.)*
+1. User long-presses link in SMS/chat -> Share -> "Check link" (Selvard share target). *(Manual paste variant: open app -> paste.)*
 2. Link Guardian pipeline runs locally; remote reputation lookup (normalized domain only) if enabled.
 3. Verdict screen: verdict state (OPEN / OPEN WITH WARNING / BLOCK / UNKNOWN) + evidence list (e.g., "domain on malware-distribution list (URLhaus)", "login form markers + brand mismatch", "redirect chain: 2 hops") + confidence (HIGH/MED/LOW).
 4. Actions: Proceed (with warning acknowledgment) / Open in isolated view (V2) / Copy report / Do nothing.
