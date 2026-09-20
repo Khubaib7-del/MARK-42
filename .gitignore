@@ -1,0 +1,30 @@
+# Build outputs
+build/
+out/
+*.apk
+*.aab
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Kotlin/Gradle
+.gradle/
+local.properties
+*.jks
+*.keystore
+keystore.properties
+
+# Secrets - never commit credentials or API keys
+*.env
+secrets/
+
+# OS
+.DS_Store
+
+# Local databases / exports
+*.db
+*.sqlite
+*.db-wal
+*.db-shm
