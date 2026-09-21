@@ -17,3 +17,7 @@ The logomark (`assets/brand/`) renders the concept as **the keystone arch**: a r
 - + A distinctive, ownable, meaning-rich identity with no same-industry collisions; the story explains itself ("self-warden").
 - − Pre-release obligations remain: formal trademark search/registration (Class 9/42), domain acquisition (`selvard.com`/`selvard.app`), app-store handle reservation. Web screening is evidence of availability, not a legal clearance.
 - All working-title references ("Cordon") were scrubbed from documentation at adoption; ADR-009/ADR-010 unaffected.
+
+## Addendum (2026-09-21): owner-supplied primary logo
+
+The product owner generated and adopted a new primary logo (raster, `assets/brand/logo.png`). It replaces the keystone-arch SVG as the *primary* identity; the arch mark remains the secondary vector mark, and a full vector reconstruction of the primary logo is deferred to Phase 9 branding. The brand accent palette shifts from Stillwater Teal to the logo's green family (Verdant `#0A6C60`, Signal `#54E454`) — see `docs/brand/BRAND_IDENTITY.md` §3–4. Launcher icons are generated from the logo within the adaptive-icon safe zone.
