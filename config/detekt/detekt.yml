@@ -1,0 +1,26 @@
+# Detekt overlay on top of the default config (buildUponDefaultConfig).
+# Security-relevant rules stay strict; noisy defaults that conflict with
+# Compose UI code are relaxed deliberately.
+build:
+  maxIssues: 0
+
+complexity:
+  LongMethod:
+    active: false
+  LongParameterList:
+    active: false
+  TooManyFunctions:
+    active: false
+
+naming:
+  FunctionNaming:
+    # Composable functions are PascalCase by convention.
+    ignoreAnnotated: ['Composable']
+
+style:
+  MagicNumber:
+    active: false
+  ReturnCount:
+    active: false
+  MaxLineLength:
+    maxLineLength: 140

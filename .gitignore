@@ -11,6 +11,7 @@ out/
 
 # Kotlin/Gradle
 .gradle/
+.kotlin/
 local.properties
 *.jks
 *.keystore
