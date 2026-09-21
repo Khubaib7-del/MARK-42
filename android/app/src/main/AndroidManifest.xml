@@ -7,6 +7,7 @@
     <application
         android:name=".SelvardApplication"
         android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
         android:label="Selvard"
         android:supportsRtl="true"
         android:theme="@style/Theme.Selvard">

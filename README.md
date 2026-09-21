@@ -79,11 +79,11 @@ scripts/bootstrap-toolchain.sh   # JDK via mise + Android SDK + local.properties
 
 ## Brand
 
-Logomark: the keystone arch — a raised arch that holds through its keystone, with the protected self standing centered in the passage. Selvard is the keystone of your device's security.
-
 <p align="center">
-  <img src="assets/brand/mark.svg" alt="Selvard logomark" width="96">
+  <img src="assets/brand/logo.png" alt="Selvard primary logo" width="220">
 </p>
+
+The primary logo (owner-supplied) is the product's visual identity: dark ink structure on a light field with a green accent family — deep teal-green for trust, bright signal green for detection. The keystone-arch mark (`assets/brand/mark.svg`) remains the secondary vector mark for schematic/monochrome contexts. Identity rules and palette: `docs/brand/BRAND_IDENTITY.md`.
 
 Identity rules, palette, and the naming decision record live in `docs/brand/BRAND_IDENTITY.md` and `docs/decisions/ADR-008-naming-direction.md`.
 
