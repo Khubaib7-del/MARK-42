@@ -40,6 +40,8 @@ Pre-adoption checklist (before first public release): formal trademark search & 
 
 **Launcher icon:** the logo is the Android adaptive-icon foreground on a `#FDFEFB` background layer, scaled to 58% of the canvas (inside the 66dp safe zone); see `android/app/src/main/res/mipmap-*`.
 
+**Banner:** `assets/brand/banner.png` (1280×360) — the transparent logo on Mist, with the letter-spaced SELVARD wordmark in Ink, tagline in Slate, and the attribute line in Verdant Green.
+
 ### 3a. Secondary vector mark
 
 **Concept: the keystone arch.** Engineering's oldest proof of reliability: an arch stands for millennia because every stone locks every other into place — and all of it holds through one stone, the keystone. Selvard is the keystone of your device's security; you stand safe beneath.

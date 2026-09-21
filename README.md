@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/brand/banner.svg" alt="Selvard — A privacy-first Android security environment" width="100%">
+  <img src="assets/brand/banner.png" alt="Selvard — A privacy-first Android security environment" width="100%">
 </p>
 
 # Selvard
