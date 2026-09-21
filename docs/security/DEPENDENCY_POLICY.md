@@ -15,7 +15,11 @@ Every dependency is attack surface — especially in a security product, where t
 
 | Dependency | Purpose | Status | Notes |
 | --- | --- | --- | --- |
-| Jetpack Compose | UI | Approved in principle | First-party; Phase 1 pin |
+| Kotlin 2.0.21 + Kotlin Multiplatform | Core domain language | Pinned (Phase 1) | First-party; jvm + android targets |
+| Android Gradle Plugin 8.7.2 | Android builds | Pinned (Phase 1) | First-party; Gradle 8.10.2 wrapper |
+| Jetpack Compose (BOM 2024.10.01) + Material 3 | UI | Pinned (Phase 1) | First-party |
+| androidx.core / activity / lifecycle | App foundation | Pinned (Phase 1) | First-party |
+| Detekt 1.23.7 | Static analysis | Pinned (Phase 1) | CI gate; config in `/config/detekt` |
 | Room | Event store | Approved in principle | First-party; Phase 2 pin |
 | SQLCipher (community/android-database-sqlcipher) | DB encryption | **Review required** | Third-party; verify maintenance status vs Room + field-level Keystore alternative; decide in ADR-006 addendum before adoption |
 | WorkManager | Background jobs | Approved in principle | First-party |

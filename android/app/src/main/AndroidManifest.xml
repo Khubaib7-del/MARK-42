@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Phase 1 declares NO permissions: least privilege (docs/DRD.md §9).
+         INTERNET arrives with threat-intelligence lookups in Phase 3. -->
+
+    <application
+        android:allowBackup="false"
+        android:label="Selvard"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Selvard">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

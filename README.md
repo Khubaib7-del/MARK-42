@@ -10,9 +10,9 @@
 
 ## Status
 
-**Phase 0 — Foundation (complete, documentation only).**
+**Phase 1 — Project foundation (complete).**
 
-No application code exists yet. This repository currently contains the engineering foundation: threat model (20 attack categories, fully attributed), Android capability matrix (verified against platform documentation), architecture, PRD/DRD, privacy and security documentation, roadmap, and ADRs. Implementation begins only after this foundation is reviewed.
+The Gradle multi-module scaffold is in place and verified: `/core/domain` (platform-neutral Kotlin Multiplatform, jvm + android targets) with the disclosure-state, engine-status, and onboarding content models and passing unit tests; `/android/app`, a minimal disclosure-first Compose shell with **zero declared permissions** and an honest "nothing here protects you yet" banner; CI (lint, detekt, gitleaks, tests, build). Engines arrive from Phase 2 onward, per the roadmap.
 
 ## What Selvard is
 
@@ -58,17 +58,24 @@ No application code exists yet. This repository currently contains the engineeri
 ## Repository structure
 
 ```
-/docs        engineering and product documentation (Phase 0 foundation)
+/docs        engineering and product documentation
 /assets      brand assets (logomark, banner)
-/core        platform-neutral security domain (Kotlin Multiplatform) — Phase 1+
-/android     Android app (Kotlin, Jetpack Compose) — Phase 1+
+/core        platform-neutral security domain (Kotlin Multiplatform) — implemented
+/android     Android app (Kotlin, Jetpack Compose) — shell implemented
 /backend     cloud intelligence services (minimal, deferred) — Phase 12+
 /desktop     future desktop agent (not MVP) — V3
-/scripts     build, CI, tooling — Phase 1+
-/tests       cross-cutting test assets — Phase 1+
+/scripts     toolchain bootstrap and build tooling
+/tests       cross-cutting test assets — grows with engines
 ```
 
-Implementation directories are created when their first phase begins.
+## Development
+
+Requires JDK 21 and the Android SDK (platform 35, build-tools 35.0.0). Reproducible bootstrap:
+
+```bash
+scripts/bootstrap-toolchain.sh   # JDK via mise + Android SDK + local.properties
+./gradlew detekt :core:domain:jvmTest :android:app:assembleDebug
+```
 
 ## Brand
 
