@@ -44,7 +44,7 @@ Pre-adoption checklist (before first public release): formal trademark search & 
 
 ### 3c. Ambient motion direction (owner-directed, 2026-09-21)
 
-Hero/banner surfaces use a **constantly floating green mesh gradient** (design reference: gurade.netlify.app ambient layer): 4–5 soft radial blobs in the logo's green family (Verdant, Signal, light green, deep teal, mint) drifting on slow sinusoidal paths with gentle size-breathing, over Mist, with a **minor static film-grain** texture. Rendered as looping APNGs — `banner.png` (20 frames, 3.2s loop) and `logo-live.png` (512×512 hero, 12 frames). This supersedes the "start flat, no gradients" default from the original spec §31 for hero/banner contexts only, per owner direction; the marks themselves stay flat, and the palette stays restrained (greens + ink + mist).
+Hero/banner surfaces use an **organic duotone green field** (owner spec, 2026-09-21): four soft color regions blended per-pixel into a single flowing field — never four visible circles — with slow flow-warp animation and drift (16-frame seamless loop). **Region map:** deep forest `#2F5D50` concentrated upper-left, soft sage `#A3C9A8` upper-right, pale botanical cream `#E9F5DB` lower-right, muted green `#5A8F6E` lower-left; subtle asymmetry, organic movement, and a very subtle light zone behind the logo for tonal separation. **Texture:** extremely subtle fine grain (±3/255) — present only to prevent digital flatness. **Files (animated WebP, validated):** `banner.webp` (1152×648, 16:9, 16 frames, ~2.7s loop), `logo-live.webp` (896×896 logo presentation, logo centered with generous space, no text, 10 frames). The gradient belongs to the background only — the logo is never recolored, bordered, or shadowed. This supersedes the "no gradients" default from the original spec §31 for hero/banner contexts only, per owner direction; the marks themselves stay flat.
 
 ### 3a. Secondary vector mark
 
@@ -78,6 +78,10 @@ Files: `assets/brand/mark.svg` (ink on light surfaces), `assets/brand/mark-dark.
 | Mist | `#F6F8FB` | Banner/app light surfaces |
 | Verdant Green | `#0A6C60` | Primary accent (sampled from logo) |
 | Signal Green | `#54E454` | Detection/highlight accent (sampled from logo) |
+| Deep Forest | `#2F5D50` | Ambient field, deep region; also accent text on light zones |
+| Sage | `#A3C9A8` | Ambient field, sage region |
+| Botanical Cream | `#E9F5DB` | Ambient field, pale region |
+| Muted Green | `#5A8F6E` | Ambient field, medium region |
 | Stillwater Teal | `#3E8E9E` | Legacy accent, secondary mark only; `#58B7CC` on dark |
 
 Restrained, cool, institutional. Monochrome rule: the mark must remain recognizable in pure black or pure white — the core and node take the boundary's color when the accent is unavailable.
