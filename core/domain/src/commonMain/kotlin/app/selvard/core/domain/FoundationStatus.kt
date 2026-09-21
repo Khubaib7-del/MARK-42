@@ -29,13 +29,14 @@ data class EngineStatus(
 
 /**
  * The single source of truth for what is implemented right now.
- * Phase 1 (foundation): every engine is planned; none may claim protection.
+ * Core processing engines (event bus, risk engine, posture) are active since Phase 2,
+ * but no guardian collects signals yet - so no protection may be claimed.
  */
 object FoundationStatus {
 
     val engines: List<EngineStatus> = listOf(
-        EngineStatus(EngineId.EVENT_BUS, EngineLifecycle.PLANNED, 2),
-        EngineStatus(EngineId.RISK_ENGINE, EngineLifecycle.PLANNED, 2),
+        EngineStatus(EngineId.EVENT_BUS, EngineLifecycle.ACTIVE, 2),
+        EngineStatus(EngineId.RISK_ENGINE, EngineLifecycle.ACTIVE, 2),
         EngineStatus(EngineId.LINK_GUARDIAN, EngineLifecycle.PLANNED, 3),
         EngineStatus(EngineId.NETWORK_GUARDIAN, EngineLifecycle.PLANNED, 4),
         EngineStatus(EngineId.APP_GUARDIAN, EngineLifecycle.PLANNED, 5),
@@ -43,7 +44,17 @@ object FoundationStatus {
         EngineStatus(EngineId.IDENTITY_EXPOSURE, EngineLifecycle.PLANNED, 7),
         EngineStatus(EngineId.DEVICE_INTEGRITY, EngineLifecycle.PLANNED, 6),
         EngineStatus(EngineId.INCIDENT_ENGINE, EngineLifecycle.PLANNED, 8),
-        EngineStatus(EngineId.SECURITY_POSTURE, EngineLifecycle.PLANNED, 2),
+        EngineStatus(EngineId.SECURITY_POSTURE, EngineLifecycle.ACTIVE, 2),
+    )
+
+    /** Engines that observe threats or enforce containment. Until one is active, nothing protects. */
+    val guardianEngines: Set<EngineId> = setOf(
+        EngineId.LINK_GUARDIAN,
+        EngineId.NETWORK_GUARDIAN,
+        EngineId.APP_GUARDIAN,
+        EngineId.PRIVACY_MONITOR,
+        EngineId.IDENTITY_EXPOSURE,
+        EngineId.DEVICE_INTEGRITY,
     )
 
     /** Honest, per-engine status line shown to the user. */
@@ -56,7 +67,7 @@ object FoundationStatus {
             "Active"
     }
 
-    /** True only when at least one engine actively protects the user. */
+    /** True only when at least one guardian engine is active. Core engines alone never protect. */
     val anyProtectionActive: Boolean
-        get() = engines.any { it.lifecycle == EngineLifecycle.ACTIVE }
+        get() = engines.any { it.lifecycle == EngineLifecycle.ACTIVE && it.engine in guardianEngines }
 }

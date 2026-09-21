@@ -46,6 +46,22 @@ class FoundationStatusTest {
         }
     }
 
+    @Test
+    fun coreEnginesAreActiveButNoGuardianClaimsProtection() {
+        val active = FoundationStatus.engines
+            .filter { it.lifecycle == EngineLifecycle.ACTIVE }
+            .map { it.engine }
+        assertTrue(
+            active.containsAll(
+                listOf(EngineId.EVENT_BUS, EngineId.RISK_ENGINE, EngineId.SECURITY_POSTURE),
+            ),
+        )
+        assertFalse(
+            FoundationStatus.anyProtectionActive,
+            "no guardian engine is implemented yet; the product must not claim protection",
+        )
+    }
+
     private fun EngineStatus.statusLineIfPlannedMentionsPhase() =
         FoundationStatus.statusLine(this).contains("Phase $plannedPhase")
 }
