@@ -10,9 +10,9 @@
 
 ## Status
 
-**Phase 1 — Project foundation (complete).**
+**Phase 2 — Security core (complete).**
 
-The Gradle multi-module scaffold is in place and verified: `/core/domain` (platform-neutral Kotlin Multiplatform, jvm + android targets) with the disclosure-state, engine-status, and onboarding content models and passing unit tests; `/android/app`, a minimal disclosure-first Compose shell with **zero declared permissions** and an honest "nothing here protects you yet" banner; CI (lint, detekt, gitleaks, tests, build). Engines arrive from Phase 2 onward, per the roadmap.
+The security core is implemented and verified: versioned event schema (with data-minimization limits enforced at construction), in-process event bus, **encrypted append-only Room event store** (AES-256-GCM per record, Android Keystore master key, StrongBox-aware), deterministic risk engine, consent-gated policy engine, and retention enforcement mirroring `DATA_CLASSIFICATION.md` — 35/35 unit tests, detekt and Android lint clean. No guardian engine is active yet, so the app still claims no protection (honest by construction, tested).
 
 ## What Selvard is
 

@@ -5,6 +5,7 @@
          INTERNET arrives with threat-intelligence lookups in Phase 3. -->
 
     <application
+        android:name=".SelvardApplication"
         android:allowBackup="false"
         android:label="Selvard"
         android:supportsRtl="true"

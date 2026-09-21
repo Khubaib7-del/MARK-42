@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.detekt)
 }
 
@@ -13,13 +14,21 @@ kotlin {
     jvm()
 
     sourceSets {
+        val jvmSharedDir = "src/jvmShared/kotlin"
+        val jvmMain by getting
+        val androidMain by getting
+        // JVM-shared code (javax.crypto, UUID) compiled into both JVM and Android targets.
+        jvmMain.kotlin.srcDir(jvmSharedDir)
+        androidMain.kotlin.srcDir(jvmSharedDir)
+
         commonMain.dependencies {
-            // Phase 1: zero third-party dependencies in core (docs/security/DEPENDENCY_POLICY.md).
-            // kotlinx-serialization arrives with the event schema in Phase 2.
+            api(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.serialization.json)
         }
         val jvmTest by getting {
             dependencies {
                 implementation(kotlin("test"))
+                implementation(libs.kotlinx.coroutines.test)
             }
         }
     }
@@ -44,6 +53,7 @@ detekt {
         "src/commonMain/kotlin",
         "src/androidMain/kotlin",
         "src/jvmMain/kotlin",
+        "src/jvmShared/kotlin",
         "src/jvmTest/kotlin",
     )
 }

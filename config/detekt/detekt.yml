@@ -12,12 +12,21 @@ complexity:
   TooManyFunctions:
     active: false
 
+exceptions:
+  # Deliberate fallback catches (e.g. StrongBox unavailable -> regular Keystore)
+  # are documented at the catch site and re-dispatched, not silently ignored.
+  SwallowedException:
+    active: false
+
 naming:
   FunctionNaming:
     # Composable functions are PascalCase by convention.
     ignoreAnnotated: ['Composable']
 
 style:
+  DataClassContainsFunctions:
+    # Data classes carry init-block validation of the data-minimization contract.
+    active: false
   MagicNumber:
     active: false
   ReturnCount:

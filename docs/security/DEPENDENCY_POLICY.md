@@ -20,7 +20,9 @@ Every dependency is attack surface — especially in a security product, where t
 | Jetpack Compose (BOM 2024.10.01) + Material 3 | UI | Pinned (Phase 1) | First-party |
 | androidx.core / activity / lifecycle | App foundation | Pinned (Phase 1) | First-party |
 | Detekt 1.23.7 | Static analysis | Pinned (Phase 1) | CI gate; config in `/config/detekt` |
-| Room | Event store | Approved in principle | First-party; Phase 2 pin |
+| kotlinx-serialization-json 1.7.3 | Event schema codec | Pinned (Phase 2) | First-party JetBrains; strict mode (unknown fields rejected) |
+| kotlinx-coroutines-core/test 1.9.0 | Event bus, store, engines | Pinned (Phase 2) | First-party JetBrains |
+| Room 2.6.1 (runtime/ktx/compiler via KSP 2.0.21-1.0.28) | Encrypted event store | Pinned (Phase 2) | First-party; schema exported to `/android/app/schemas`; KSP1 forced (Room not KSP2-ready) |
 | SQLCipher (community/android-database-sqlcipher) | DB encryption | **Review required** | Third-party; verify maintenance status vs Room + field-level Keystore alternative; decide in ADR-006 addendum before adoption |
 | WorkManager | Background jobs | Approved in principle | First-party |
 | kotlinx.serialization | Event schema | Approved in principle | First-party, deterministic |
