@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/brand/banner.png" alt="Selvard — A privacy-first Android security environment" width="100%">
+  <img src="assets/brand/banner.webp" alt="Selvard — A privacy-first Android security environment" width="100%">
 </p>
 
 # Selvard
@@ -80,7 +80,7 @@ scripts/bootstrap-toolchain.sh   # JDK via mise + Android SDK + local.properties
 ## Brand
 
 <p align="center">
-  <img src="assets/brand/logo-live.png" alt="Selvard primary logo over a floating green gradient" width="360">
+  <img src="assets/brand/logo-live.webp" alt="Selvard primary logo over a flowing green gradient field" width="380">
 </p>
 
 The primary logo (owner-supplied) is the product's visual identity: dark ink structure on a light field with a green accent family — deep teal-green for trust, bright signal green for detection. The keystone-arch mark (`assets/brand/mark.svg`) remains the secondary vector mark for schematic/monochrome contexts. Identity rules and palette: `docs/brand/BRAND_IDENTITY.md`.
