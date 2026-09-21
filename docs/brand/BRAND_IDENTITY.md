@@ -42,6 +42,10 @@ Pre-adoption checklist (before first public release): formal trademark search & 
 
 **Banner:** `assets/brand/banner.png` (1280×360) — the transparent logo on Mist, with the letter-spaced SELVARD wordmark in Ink, tagline in Slate, and the attribute line in Verdant Green.
 
+### 3c. Ambient motion direction (owner-directed, 2026-09-21)
+
+Hero/banner surfaces use a **constantly floating green mesh gradient** (design reference: gurade.netlify.app ambient layer): 4–5 soft radial blobs in the logo's green family (Verdant, Signal, light green, deep teal, mint) drifting on slow sinusoidal paths with gentle size-breathing, over Mist, with a **minor static film-grain** texture. Rendered as looping APNGs — `banner.png` (20 frames, 3.2s loop) and `logo-live.png` (512×512 hero, 12 frames). This supersedes the "start flat, no gradients" default from the original spec §31 for hero/banner contexts only, per owner direction; the marks themselves stay flat, and the palette stays restrained (greens + ink + mist).
+
 ### 3a. Secondary vector mark
 
 **Concept: the keystone arch.** Engineering's oldest proof of reliability: an arch stands for millennia because every stone locks every other into place — and all of it holds through one stone, the keystone. Selvard is the keystone of your device's security; you stand safe beneath.
