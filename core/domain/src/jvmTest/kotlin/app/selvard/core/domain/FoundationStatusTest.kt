@@ -20,11 +20,18 @@ class FoundationStatusTest {
             .filter { it.lifecycle == EngineLifecycle.PLANNED }
             .forEach { status ->
                 assertTrue(status.statusLineIfPlannedMentionsPhase())
+                // A planned engine must never be reported as active, and only
+                // active guardian engines may drive protection claims.
                 assertFalse(
-                    FoundationStatus.anyProtectionActive,
-                    "no engine may report active protection before it is built",
+                    status.engine in FoundationStatus.engines
+                        .filter { it.lifecycle == EngineLifecycle.ACTIVE }
+                        .map { it.engine },
                 )
             }
+        val activeGuardians = FoundationStatus.engines
+            .filter { it.lifecycle == EngineLifecycle.ACTIVE && it.engine in FoundationStatus.guardianEngines }
+            .map { it.engine }
+        assertTrue(FoundationStatus.anyProtectionActive == activeGuardians.isNotEmpty())
     }
 
     @Test
@@ -47,7 +54,7 @@ class FoundationStatusTest {
     }
 
     @Test
-    fun coreEnginesAreActiveButNoGuardianClaimsProtection() {
+    fun linkGuardianIsTheOnlyActiveGuardianSincePhase3() {
         val active = FoundationStatus.engines
             .filter { it.lifecycle == EngineLifecycle.ACTIVE }
             .map { it.engine }
@@ -56,9 +63,19 @@ class FoundationStatusTest {
                 listOf(EngineId.EVENT_BUS, EngineId.RISK_ENGINE, EngineId.SECURITY_POSTURE),
             ),
         )
-        assertFalse(
+        assertTrue(active.contains(EngineId.LINK_GUARDIAN))
+        assertEquals(
+            setOf(
+                EngineId.EVENT_BUS,
+                EngineId.RISK_ENGINE,
+                EngineId.SECURITY_POSTURE,
+                EngineId.LINK_GUARDIAN,
+            ),
+            active.toSet(),
+        )
+        assertTrue(
             FoundationStatus.anyProtectionActive,
-            "no guardian engine is implemented yet; the product must not claim protection",
+            "Link Guardian is active: explicit-link protection may now be claimed",
         )
     }
 
