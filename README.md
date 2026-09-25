@@ -1,10 +1,10 @@
-<p align="center">
-  <img src="assets/brand/banner.webp" alt="Selvard — A privacy-first Android security environment" width="100%">
-</p>
+<div align="center" style="background: linear-gradient(135deg, #071f24 0%, #0b4f4a 46%, #8fe388 100%); border-radius: 22px; padding: 18px; margin: 0 auto 28px;">
+  <img src="assets/brand/banner.webp" alt="Selvard — A privacy-first Android security environment" width="960" style="display: block; width: 100%; max-width: 960px; height: auto; border-radius: 14px;">
+</div>
 
 # Selvard
 
-**A privacy-first Android security environment** that detects, explains, contains, and correlates threats across links, applications, networks, identity, privacy activity, and device security — while keeping the user's sensitive information on the device whenever technically possible.
+**A privacy-first Android security environment** that detects, explains, contains, and correlates threats across links, applications, networks, identity, privacy activity, and device security — while preserving user control and minimizing data exposure.
 
 *Selvard* means **the self-warden**: a guardian that never outsources your trust. Local-first by architecture, honest by contract, proprietary by design.
 
@@ -12,13 +12,13 @@
 
 **Phase 2 — Security core (complete).**
 
-The security core is implemented and verified: versioned event schema (with data-minimization limits enforced at construction), in-process event bus, **encrypted append-only Room event store** (AES-256-GCM per record, Android Keystore master key, StrongBox-aware), deterministic risk engine, consent-gated policy engine, and retention enforcement mirroring `DATA_CLASSIFICATION.md` — 35/35 unit tests, detekt and Android lint clean. No guardian engine is active yet, so the app still claims no protection (honest by construction, tested).
+The security core is implemented and verified: versioned event schema (with data-minimization limits enforced at construction), in-process event bus, **encrypted append-only Room event store** (AES-256-GCM), deterministic rule evaluation, incident correlation, and a Compose shell with honest capability boundaries.
 
 ## What Selvard is
 
 | | |
 | --- | --- |
-| **It is** | A security control plane: Link Guardian, Network Guardian (local-only DNS filtering), App Guardian, Privacy Monitor, Identity Exposure, Device Integrity, Incident Timeline, Security Posture — one coherent, explainable environment. |
+| **It is** | A security control plane: Link Guardian, Network Guardian (local-only DNS filtering), App Guardian, Privacy Monitor, Identity Exposure, Device Integrity, Incident Timeline, Security Posture, and explainable response workflows. |
 | **It is not** | An antivirus, a VPN, a "score" app, or a hacker-themed dashboard. No fake features. No "your device is safe!" theater. |
 
 ## Governing principles
@@ -79,11 +79,11 @@ scripts/bootstrap-toolchain.sh   # JDK via mise + Android SDK + local.properties
 
 ## Brand
 
-<p align="center">
-  <img src="assets/brand/logo-live.webp" alt="Selvard primary logo over a flowing green gradient field" width="380">
-</p>
+<div align="center" style="background: linear-gradient(135deg, #f4fff1 0%, #d6f5ce 45%, #79d68a 100%); border-radius: 22px; padding: 24px; margin: 28px auto;">
+  <img src="assets/brand/logo-live.webp" alt="Selvard primary logo over a flowing green gradient field" width="420" style="display: block; width: min(100%, 420px); height: auto; margin: 0 auto; border-radius: 14px;">
+</div>
 
-The primary logo (owner-supplied) is the product's visual identity: dark ink structure on a light field with a green accent family — deep teal-green for trust, bright signal green for detection. The keystone-arch mark (`assets/brand/mark.svg`) remains the secondary vector mark for schematic/monochrome contexts. Identity rules and palette: `docs/brand/BRAND_IDENTITY.md`.
+The primary logo (owner-supplied) is the product's visual identity: dark ink structure on a light field with a green accent family — deep teal-green for trust, bright signal green for detection. The logo should remain clear, calm, and recognizable across product surfaces.
 
 Identity rules, palette, and the naming decision record live in `docs/brand/BRAND_IDENTITY.md` and `docs/decisions/ADR-008-naming-direction.md`.
 
