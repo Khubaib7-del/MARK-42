@@ -75,8 +75,9 @@ private fun FoundationBanner(modifier: Modifier = Modifier) {
         color = MaterialTheme.colorScheme.surfaceVariant,
     ) {
         Text(
-            text = "FOUNDATION PREVIEW — Phase 1. No security engine is implemented yet; " +
-                "nothing here protects you.",
+            text = "FOUNDATION PREVIEW — Link Guardian is active: share or paste a link to " +
+                "check it on this device. Other engines are not yet implemented; they are " +
+                "listed below.",
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(12.dp),

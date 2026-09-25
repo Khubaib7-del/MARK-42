@@ -10,9 +10,9 @@
 
 ## Status
 
-**Phase 2 — Security core (complete).**
+**Phase 3 — Link Guardian (complete).**
 
-The security core is implemented and verified: versioned event schema (with data-minimization limits enforced at construction), in-process event bus, **encrypted append-only Room event store** (AES-256-GCM), deterministic rule evaluation, incident correlation, and a Compose shell with honest capability boundaries.
+The first guardian is live: **Link Guardian** — share a link from any app (or paste one) and Selvard analyzes it entirely on-device: URL normalization, punycode/IDN homograph decoding, brand-impersonation heuristics, local feed lookup, and an evidence-first verdict (OPEN / OPEN WITH WARNING / BLOCK / UNKNOWN) with confidence and named reasons — never "safe". Every check is recorded as an encrypted event in the local store. Built on the Phase 2 security core (encrypted event store, deterministic risk engine, policy and retention engines): 52/52 unit tests, detekt and Android lint clean. The bundled feed is a clearly-labeled **development sample**; with no feed, verdicts are honestly UNKNOWN.
 
 ## What Selvard is
 

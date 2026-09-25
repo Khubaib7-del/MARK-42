@@ -37,7 +37,7 @@ object FoundationStatus {
     val engines: List<EngineStatus> = listOf(
         EngineStatus(EngineId.EVENT_BUS, EngineLifecycle.ACTIVE, 2),
         EngineStatus(EngineId.RISK_ENGINE, EngineLifecycle.ACTIVE, 2),
-        EngineStatus(EngineId.LINK_GUARDIAN, EngineLifecycle.PLANNED, 3),
+        EngineStatus(EngineId.LINK_GUARDIAN, EngineLifecycle.ACTIVE, 3),
         EngineStatus(EngineId.NETWORK_GUARDIAN, EngineLifecycle.PLANNED, 4),
         EngineStatus(EngineId.APP_GUARDIAN, EngineLifecycle.PLANNED, 5),
         EngineStatus(EngineId.PRIVACY_MONITOR, EngineLifecycle.PLANNED, 6),
@@ -47,7 +47,11 @@ object FoundationStatus {
         EngineStatus(EngineId.SECURITY_POSTURE, EngineLifecycle.ACTIVE, 2),
     )
 
-    /** Engines that observe threats or enforce containment. Until one is active, nothing protects. */
+    /**
+     * Engines that observe threats or enforce containment. Since Phase 3 the Link
+     * Guardian is active: links the user explicitly shares or pastes are analyzed
+     * on-device. All other guardians remain unimplemented.
+     */
     val guardianEngines: Set<EngineId> = setOf(
         EngineId.LINK_GUARDIAN,
         EngineId.NETWORK_GUARDIAN,
