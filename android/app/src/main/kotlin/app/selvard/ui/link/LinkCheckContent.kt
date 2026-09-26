@@ -56,14 +56,15 @@ fun LinkCheckContent(
 
 @Composable
 private fun VerdictCard(verdict: LinkVerdict) {
-    val (label, tone) = when (verdict.state) {
-        LinkVerdictState.OPEN -> "OPEN — no known threat" to MaterialTheme.colorScheme.secondary
-        LinkVerdictState.OPEN_WITH_WARNING -> "OPEN WITH WARNING — suspicious indicators" to MaterialTheme.colorScheme.secondary
-        LinkVerdictState.BLOCK -> "BLOCKED — high-risk" to MaterialTheme.colorScheme.primary
-        LinkVerdictState.UNKNOWN -> "UNKNOWN — limited analysis" to MaterialTheme.colorScheme.onSurfaceVariant
+    // Words carry the verdict; tone never contradicts them (no green-means-open).
+    val label = when (verdict.state) {
+        LinkVerdictState.OPEN -> "OPEN — no known threat"
+        LinkVerdictState.OPEN_WITH_WARNING -> "OPEN WITH WARNING — suspicious indicators"
+        LinkVerdictState.BLOCK -> "BLOCKED — high-risk"
+        LinkVerdictState.UNKNOWN -> "UNKNOWN — limited analysis"
     }
     Column {
-        Text(label, style = MaterialTheme.typography.titleLarge, color = tone)
+        Text(label, style = MaterialTheme.typography.titleLarge)
         Text(
             "Confidence: ${verdict.confidence.name.lowercase()}",
             style = MaterialTheme.typography.labelLarge,
@@ -86,7 +87,6 @@ private fun VerdictCard(verdict: LinkVerdict) {
                     Text(
                         finding.kind,
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.secondary,
                     )
                     Text(finding.detail, style = MaterialTheme.typography.bodyMedium)
                 }

@@ -193,7 +193,6 @@ private fun AppDetailDialog(analysis: AppAnalysis, onDismiss: () -> Unit) {
                             Text(
                                 finding.kind,
                                 style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.secondary,
                             )
                             Text(finding.detail, style = MaterialTheme.typography.bodyMedium)
                             Text(
