@@ -10,7 +10,7 @@
 
 ## Try the current build
 
-[**Download `selvard-v0.1.0-phase5.apk` (v0.1.0, Phase 5)**](https://github.com/Khubaib7-del/MARK-42/releases/download/v0.1.0-phase5/selvard-v0.1.0-phase5.apk) — sideload on any Android 8.0+ device. Includes Link Guardian (share or paste a link), App Guardian (on-demand app inventory scan), and the opt-in Network Guardian DNS filter. Debug-signed for testing; the release notes list every honest limit of this build.
+[**Download `selvard-v0.1.1-scanfix.apk` (v0.1.1)**](https://github.com/Khubaib7-del/MARK-42/releases/download/v0.1.1-scanfix/selvard-v0.1.1-scanfix.apk) — sideload on any Android 8.0+ device. Includes Link Guardian (share or paste a link), App Guardian (on-demand app inventory scan), and the opt-in Network Guardian DNS filter. **v0.1.1 fixes the crash when tapping Scan installed apps on a real phone** (findings cap + error message instead of app close). Debug-signed for testing; the release notes list every honest limit of this build.
 
 ## Status
 
