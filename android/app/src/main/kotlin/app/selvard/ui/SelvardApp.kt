@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.Switch
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -29,14 +30,17 @@ import androidx.compose.ui.unit.dp
 import app.selvard.core.domain.FoundationStatus
 import app.selvard.core.domain.OnboardingContent
 import app.selvard.core.domain.OnboardingPage
+import app.selvard.network.NetworkGuardianState
+import app.selvard.network.SelvardVpnService
 import app.selvard.ui.theme.SelvardTheme
+import androidx.compose.runtime.collectAsState
 
 @Composable
 fun SelvardApp() {
     SelvardTheme {
         Surface(modifier = Modifier.fillMaxSize()) {
             var page by remember { mutableIntStateOf(0) }
-            val lastPage = OnboardingContent.pages.size // final page = foundation status
+            val lastPage = OnboardingContent.pages.size + 1 // consent page, then foundation status
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -52,6 +56,8 @@ fun SelvardApp() {
                 ) {
                     if (page < OnboardingContent.pages.size) {
                         OnboardingPageView(page = OnboardingContent.pages[page])
+                    } else if (page == OnboardingContent.pages.size) {
+                        NetworkGuardianConsentView()
                     } else {
                         FoundationStatusView()
                     }
@@ -69,6 +75,7 @@ fun SelvardApp() {
 
 @Composable
 private fun FoundationBanner(modifier: Modifier = Modifier) {
+    // (existing implementation unchanged; appended composables below)
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
@@ -171,6 +178,80 @@ private fun NavigationRow(
             Button(onClick = onNext) { Text("Continue") }
         } else {
             OutlinedButton(onClick = {}) { Text("Done for now") }
+        }
+    }
+}
+
+/**
+ * Prominent disclosure + consent (Play VpnService policy; USER_FLOWS F3).
+ * In-app, in the normal usage flow, separate from other disclosures, and
+ * requiring affirmative action before the tunnel can be enabled.
+ */
+@Composable
+private fun NetworkGuardianConsentView() {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val app = context.applicationContext as app.selvard.SelvardApplication
+    val running by app.networkGuardianState.running.collectAsState()
+    Column {
+        Text(
+            text = "Network Guardian",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.SemiBold,
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            text = "What this does",
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Text(
+            text = "When enabled, Selvard sets up a local VPN tunnel that filters " +
+                "domain-name lookups (DNS) on this device. Lookups for known malware " +
+                "and phishing destinations are refused. Allowed lookups are forwarded, " +
+                "unmodified, to your device's own configured resolver.",
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(top = 4.dp),
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            text = "What this does NOT do",
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Text(
+            text = "Selvard does not route your traffic to any server — filtering happens " +
+                "on this device only. Only DNS lookups pass through Selvard; all other " +
+                "traffic bypasses it entirely and is never seen by this app. Selvard " +
+                "never inspects the content of your connections. Records of blocked " +
+                "destinations stay on this device.",
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(top = 4.dp),
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            text = "Development sample data: filtering currently uses a bundled sample " +
+                "list, not real threat intelligence.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(modifier = Modifier.height(20.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Switch(
+                checked = running,
+                onCheckedChange = { enabled ->
+                    val intent = android.content.Intent(context, SelvardVpnService::class.java)
+                    if (enabled) {
+                        androidx.core.content.ContextCompat.startForegroundService(context, intent)
+                        app.networkGuardianState.setRunning(true)
+                    } else {
+                        intent.action = SelvardVpnService.ACTION_STOP
+                        context.startService(intent)
+                        app.networkGuardianState.setRunning(false)
+                    }
+                },
+            )
+            Text(if (running) "PROTECTED (local filtering)" else "OFF — not filtering")
         }
     }
 }

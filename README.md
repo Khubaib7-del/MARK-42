@@ -10,9 +10,9 @@
 
 ## Status
 
-**Phase 3 — Link Guardian (complete).**
+**Phase 4 — Network Guardian (complete).**
 
-The first guardian is live: **Link Guardian** — share a link from any app (or paste one) and Selvard analyzes it entirely on-device: URL normalization, punycode/IDN homograph decoding, brand-impersonation heuristics, local feed lookup, and an evidence-first verdict (OPEN / OPEN WITH WARNING / BLOCK / UNKNOWN) with confidence and named reasons — never "safe". Every check is recorded as an encrypted event in the local store. Built on the Phase 2 security core (encrypted event store, deterministic risk engine, policy and retention engines): 52/52 unit tests, detekt and Android lint clean. The bundled feed is a clearly-labeled **development sample**; with no feed, verdicts are honestly UNKNOWN.
+Two guardians are live. **Link Guardian** (Phase 3): share or paste a link and Selvard analyzes it entirely on-device — URL normalization, punycode/IDN homograph decoding, brand-impersonation heuristics, local feed lookup, and an evidence-first verdict (OPEN / OPEN WITH WARNING / BLOCK / UNKNOWN) with confidence and named reasons — never "safe". **Network Guardian** (Phase 4): an opt-in, split-tunnel DNS filter — only DNS lookups pass through Selvard; all other traffic bypasses it entirely and is never seen by the app. Blocked names are refused purely on-device with zero network egress; allowed lookups are forwarded unmodified to your device's own resolver. No remote tunnel endpoint exists, and nothing is ever claimed "safe". Every check and block is recorded as an encrypted event in the local store. 70/70 unit tests, detekt and Android lint clean. Both feeds are clearly-labeled **development samples**; real blocklists arrive with threat-intelligence integration.
 
 ## What Selvard is
 
