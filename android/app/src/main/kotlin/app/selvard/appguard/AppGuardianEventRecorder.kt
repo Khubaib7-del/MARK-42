@@ -19,6 +19,9 @@ import kotlinx.coroutines.launch
  * Data-minimizing event recording for app scans: one summary event (counts
  * only, no package names of low-risk apps), and per-app events only for
  * HIGH/CRITICAL capability scores. The full inventory is never persisted.
+ *
+ * Best-effort by design: persistence must never crash a scan. Results are
+ * computed and shown first; a store failure only loses the audit copy.
  */
 object AppGuardianEventRecorder {
 
@@ -49,8 +52,10 @@ object AppGuardianEventRecorder {
             privacyClassification = PrivacyClass.SENSITIVE,
         )
         app.scope.launch {
-            app.eventBus.publish(summary)
-            app.eventStore.append(summary)
+            runCatching {
+                app.eventBus.publish(summary)
+                app.eventStore.append(summary)
+            }
         }
         highOrCritical.take(MAX_PERSISTED_APP_EVENTS).forEach { analysis ->
             val event = SecurityEvent(
@@ -68,8 +73,10 @@ object AppGuardianEventRecorder {
                 privacyClassification = PrivacyClass.SENSITIVE,
             )
             app.scope.launch {
-                app.eventBus.publish(event)
-                app.eventStore.append(event)
+                runCatching {
+                    app.eventBus.publish(event)
+                    app.eventStore.append(event)
+                }
             }
         }
     }

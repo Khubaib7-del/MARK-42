@@ -45,6 +45,7 @@ fun AppGuardianView() {
     var analyses by remember { mutableStateOf<List<AppAnalysis>?>(null) }
     var selected by remember { mutableStateOf<AppAnalysis?>(null) }
     var scanning by remember { mutableStateOf(false) }
+    var scanError by remember { mutableStateOf<String?>(null) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         Text(
@@ -62,20 +63,40 @@ fun AppGuardianView() {
         Button(
             onClick = {
                 scanning = true
+                scanError = null
                 scope.launch {
-                    val facts = withContext(Dispatchers.IO) {
-                        PackageInventoryScanner.from(context).scan()
+                    val result = runCatching {
+                        val facts = withContext(Dispatchers.IO) {
+                            PackageInventoryScanner.from(context).scan()
+                        }
+                        facts.map { app.appGuardian.analyze(it) }
+                            .sortedByDescending { it.score }
                     }
-                    val results = facts.map { app.appGuardian.analyze(it) }
-                        .sortedByDescending { it.score }
-                    AppGuardianEventRecorder.record(app, results)
-                    analyses = results
+                    result
+                        .onSuccess { results ->
+                            // Show results first; audit recording must never
+                            // block or clear them.
+                            analyses = results
+                            AppGuardianEventRecorder.record(app, results)
+                        }
+                        .onFailure { failure ->
+                            scanError = "Scan failed: ${failure.message ?: "unknown error"}. " +
+                                "Nothing was recorded; please retry."
+                        }
                     scanning = false
                 }
             },
             enabled = !scanning,
         ) { Text(if (scanning) "Scanning…" else "Scan installed apps") }
         Spacer(Modifier.height(12.dp))
+        scanError?.let { error ->
+            Text(
+                error,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(bottom = 8.dp),
+            )
+        }
         val list = analyses
         if (list == null) {
             Text(

@@ -149,12 +149,23 @@ class AppGuardian {
         }
 
         val score = findings.sumOf { it.weight } + baseWeight(facts)
+        // Cap, never throw: the heaviest real-world packages must still analyze.
+        val ordered = findings.sortedByDescending { it.weight }
+        val visible = ordered.take(AppAnalysis.MAX_FINDINGS)
+        val omitted = ordered.size - visible.size
+        val reasons = buildReasons(facts, findings, score).let {
+            if (omitted > 0) {
+                it + "$omitted additional finding(s) omitted from display (cap ${AppAnalysis.MAX_FINDINGS})"
+            } else {
+                it
+            }
+        }
         return AppAnalysis(
             packageName = facts.packageName,
-            findings = findings,
+            findings = visible,
             score = score,
             band = bandOf(score),
-            reasons = buildReasons(facts, findings, score),
+            reasons = reasons,
         )
     }
 
