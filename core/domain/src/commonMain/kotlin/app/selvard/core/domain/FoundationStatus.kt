@@ -43,7 +43,7 @@ object FoundationStatus {
         EngineStatus(EngineId.PRIVACY_MONITOR, EngineLifecycle.ACTIVE, 6),
         EngineStatus(EngineId.IDENTITY_EXPOSURE, EngineLifecycle.ACTIVE, 7),
         EngineStatus(EngineId.DEVICE_INTEGRITY, EngineLifecycle.ACTIVE, 6),
-        EngineStatus(EngineId.INCIDENT_ENGINE, EngineLifecycle.PLANNED, 8),
+        EngineStatus(EngineId.INCIDENT_ENGINE, EngineLifecycle.ACTIVE, 8),
         EngineStatus(EngineId.SECURITY_POSTURE, EngineLifecycle.ACTIVE, 2),
     )
 
