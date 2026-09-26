@@ -54,9 +54,9 @@ class FoundationStatusTest {
     }
 
     @Test
-    fun activeEnginesMatchPhase7() {
-        // Phase 7 activates Identity Exposure; rename with each phase so the
-        // expectation documents the current roadmap truth.
+    fun activeEnginesMatchPhase8() {
+        // Phase 8 activates the Incident engine, completing the engine set;
+        // rename with each phase so the expectation documents the roadmap truth.
         val active = FoundationStatus.engines
             .filter { it.lifecycle == EngineLifecycle.ACTIVE }
             .map { it.engine }
@@ -77,6 +77,7 @@ class FoundationStatusTest {
                 EngineId.PRIVACY_MONITOR,
                 EngineId.DEVICE_INTEGRITY,
                 EngineId.IDENTITY_EXPOSURE,
+                EngineId.INCIDENT_ENGINE,
             ),
             active.toSet(),
         )
