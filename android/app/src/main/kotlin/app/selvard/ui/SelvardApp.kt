@@ -142,7 +142,7 @@ private fun OnboardingPageView(page: OnboardingPage) {
                 Text(
                     text = "—",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.secondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(end = 10.dp),
                 )
                 Text(

@@ -229,7 +229,8 @@ private fun IntegrityResult(snap: IntegritySnapshot) {
 @Composable
 private fun stateColor(entry: app.selvard.core.domain.privacy.CoverageEntry) =
     if (entry.state == app.selvard.core.domain.DisclosureState.DETECTED) {
-        MaterialTheme.colorScheme.secondary
+        // Words ("Observed…") carry the state; ink keeps AA on light surfaces.
+        MaterialTheme.colorScheme.onSurface
     } else {
         MaterialTheme.colorScheme.onSurfaceVariant
     }
