@@ -40,7 +40,7 @@ fun SelvardApp() {
     SelvardTheme {
         Surface(modifier = Modifier.fillMaxSize()) {
             var page by remember { mutableIntStateOf(0) }
-            val lastPage = OnboardingContent.pages.size + 1 // consent page, then foundation status
+            val lastPage = OnboardingContent.pages.size + 2 // consent, app guardian, foundation status
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -58,6 +58,8 @@ fun SelvardApp() {
                         OnboardingPageView(page = OnboardingContent.pages[page])
                     } else if (page == OnboardingContent.pages.size) {
                         NetworkGuardianConsentView()
+                    } else if (page == OnboardingContent.pages.size + 1) {
+                        AppGuardianView()
                     } else {
                         FoundationStatusView()
                     }
@@ -82,9 +84,9 @@ private fun FoundationBanner(modifier: Modifier = Modifier) {
         color = MaterialTheme.colorScheme.surfaceVariant,
     ) {
         Text(
-            text = "FOUNDATION PREVIEW — Link Guardian is active: share or paste a link to " +
-                "check it on this device. Other engines are not yet implemented; they are " +
-                "listed below.",
+            text = "FOUNDATION PREVIEW — Link Guardian (link checks), Network Guardian " +
+                "(opt-in DNS filter), and App Guardian (on-demand app scans) are active. " +
+                "Other engines are not yet implemented; they are listed below.",
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(12.dp),

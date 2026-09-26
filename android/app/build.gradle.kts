@@ -40,6 +40,14 @@ android {
     buildFeatures {
         compose = true
     }
+
+    lint {
+        // QUERY_ALL_PACKAGES is a deliberate, Play-declared capability for
+        // the App Guardian package inventory (device security apps are a
+        // permitted use; DRD §9). Kept as a warning, not disabled, so it
+        // stays visible for every release review.
+        warning += "QueryAllPackagesPermission"
+    }
 }
 
 dependencies {

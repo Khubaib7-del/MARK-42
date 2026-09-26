@@ -39,7 +39,7 @@ object FoundationStatus {
         EngineStatus(EngineId.RISK_ENGINE, EngineLifecycle.ACTIVE, 2),
         EngineStatus(EngineId.LINK_GUARDIAN, EngineLifecycle.ACTIVE, 3),
         EngineStatus(EngineId.NETWORK_GUARDIAN, EngineLifecycle.ACTIVE, 4),
-        EngineStatus(EngineId.APP_GUARDIAN, EngineLifecycle.PLANNED, 5),
+        EngineStatus(EngineId.APP_GUARDIAN, EngineLifecycle.ACTIVE, 5),
         EngineStatus(EngineId.PRIVACY_MONITOR, EngineLifecycle.PLANNED, 6),
         EngineStatus(EngineId.IDENTITY_EXPOSURE, EngineLifecycle.PLANNED, 7),
         EngineStatus(EngineId.DEVICE_INTEGRITY, EngineLifecycle.PLANNED, 6),
@@ -48,9 +48,10 @@ object FoundationStatus {
     )
 
     /**
-     * Engines that observe threats or enforce containment. Since Phase 3 the Link
-     * Guardian is active: links the user explicitly shares or pastes are analyzed
-     * on-device. All other guardians remain unimplemented.
+     * Engines that observe threats or enforce containment. Active since
+     * Phases 3-5: Link Guardian (explicit link checks), Network Guardian
+     * (opt-in DNS filter), App Guardian (on-demand inventory scans).
+     * Privacy/Identity/Integrity/Incident engines remain unimplemented.
      */
     val guardianEngines: Set<EngineId> = setOf(
         EngineId.LINK_GUARDIAN,

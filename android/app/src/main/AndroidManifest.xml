@@ -12,6 +12,10 @@
     <!-- Read the device's current DNS resolver so filtering never silently
          changes who resolves the user's names (least-privilege: normal permission). -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Full package inventory for App Guardian (Phase 5). Device security and
+         antivirus apps are a permitted use; requires the Play Permissions
+         Declaration Form + prominent disclosure (docs/DRD.md §9). -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
 
     <application
         android:name=".SelvardApplication"
