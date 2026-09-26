@@ -21,13 +21,13 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import app.selvard.core.domain.FoundationStatus
 import app.selvard.core.domain.OnboardingContent
 import app.selvard.core.domain.OnboardingPage
 import app.selvard.network.NetworkGuardianState
@@ -37,52 +37,79 @@ import androidx.compose.runtime.collectAsState
 
 @Composable
 fun SelvardApp() {
-    SelvardTheme {
-        Surface(modifier = Modifier.fillMaxSize()) {
-            var page by remember { mutableIntStateOf(0) }
-            val lastPage = OnboardingContent.pages.size + 5 // consent, app guardian, privacy, identity, timeline, status
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .systemBarsPadding()
-                    .padding(horizontal = 24.dp),
-            ) {
-                FoundationBanner(modifier = Modifier.padding(top = 16.dp))
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.Center,
-                ) {
-                    if (page < OnboardingContent.pages.size) {
-                        OnboardingPageView(page = OnboardingContent.pages[page])
-                    } else if (page == OnboardingContent.pages.size) {
-                        NetworkGuardianConsentView()
-                    } else if (page == OnboardingContent.pages.size + 1) {
-                        AppGuardianView()
-                    } else if (page == OnboardingContent.pages.size + 2) {
-                        PrivacyMonitorView()
-                    } else if (page == OnboardingContent.pages.size + 3) {
-                        IdentityExposureView()
-                    } else if (page == OnboardingContent.pages.size + 4) {
-                        IncidentTimelineView()
-                    } else {
-                        FoundationStatusView()
-                    }
-                }
-                NavigationRow(
-                    page = page,
-                    lastPage = lastPage,
-                    onBack = { if (page > 0) page-- },
-                    onNext = { if (page < lastPage) page++ },
-                )
+    var onboardingDone by remember { mutableStateOf(false) }
+    if (onboardingDone) {
+        SelvardNav()
+    } else {
+        SelvardTheme {
+            Surface(modifier = Modifier.fillMaxSize()) {
+                OnboardingPagerContent(onDone = { onboardingDone = true })
             }
         }
     }
 }
 
+/**
+ * Disclosure-first onboarding pager (USER_FLOWS F2), kept intact from
+ * Phase 8. Dismissal hands off to the tab navigation; the engine-status
+ * page now lives under the Settings tab instead.
+ */
 @Composable
-private fun FoundationBanner(modifier: Modifier = Modifier) {
+internal fun OnboardingPagerContent(onDone: () -> Unit) {
+    var page by remember { mutableIntStateOf(0) }
+    // consent, app guardian, privacy, identity, timeline
+    val lastPage = OnboardingContent.pages.size + 4
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .systemBarsPadding()
+            .padding(horizontal = 24.dp),
+    ) {
+        FoundationBanner(modifier = Modifier.padding(top = 16.dp))
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.Center,
+        ) {
+            if (page < OnboardingContent.pages.size) {
+                OnboardingPageView(page = OnboardingContent.pages[page])
+            } else if (page == OnboardingContent.pages.size) {
+                NetworkGuardianConsentView()
+            } else if (page == OnboardingContent.pages.size + 1) {
+                AppGuardianView()
+            } else if (page == OnboardingContent.pages.size + 2) {
+                PrivacyMonitorView()
+            } else if (page == OnboardingContent.pages.size + 3) {
+                IdentityExposureView()
+            } else {
+                IncidentTimelineView()
+            }
+        }
+        NavigationRow(
+            page = page,
+            lastPage = lastPage,
+            onBack = { if (page > 0) page-- },
+            onNext = { if (page < lastPage) page++ },
+            onDone = onDone,
+        )
+    }
+}
+
+/** Network consent reused as the Network tab body (same disclosure, same switch). */
+@Composable
+internal fun NetworkTabWrap() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+    ) {
+        NetworkGuardianConsentView()
+    }
+}
+
+@Composable
+internal fun FoundationBanner(modifier: Modifier = Modifier) {
     // (existing implementation unchanged; appended composables below)
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -128,48 +155,14 @@ private fun OnboardingPageView(page: OnboardingPage) {
     }
 }
 
+/** Pager navigation: Back/Continue, with dismissal on the final page. */
 @Composable
-private fun FoundationStatusView() {
-    Column {
-        Text(
-            text = "What is actually running",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.SemiBold,
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "Honest status of every planned engine. Phases follow the roadmap " +
-                "(docs/ROADMAP.md). Nothing is listed as active until it is built.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        FoundationStatus.engines.forEach { status ->
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-            ) {
-                Text(
-                    text = status.engine.displayName,
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Text(
-                    text = FoundationStatus.statusLine(status),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun NavigationRow(
+internal fun NavigationRow(
     page: Int,
     lastPage: Int,
     onBack: () -> Unit,
     onNext: () -> Unit,
+    onDone: () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -186,7 +179,7 @@ private fun NavigationRow(
         if (page < lastPage) {
             Button(onClick = onNext) { Text("Continue") }
         } else {
-            OutlinedButton(onClick = {}) { Text("Done for now") }
+            Button(onClick = onDone) { Text("Enter Selvard") }
         }
     }
 }
@@ -197,7 +190,7 @@ private fun NavigationRow(
  * requiring affirmative action before the tunnel can be enabled.
  */
 @Composable
-private fun NetworkGuardianConsentView() {
+internal fun NetworkGuardianConsentView() {
     val context = androidx.compose.ui.platform.LocalContext.current
     val app = context.applicationContext as app.selvard.SelvardApplication
     val running by app.networkGuardianState.running.collectAsState()
