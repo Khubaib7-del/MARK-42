@@ -18,6 +18,7 @@ import app.selvard.privacy.SelvardSeverity
 import app.selvard.data.KeystoreKeyring
 import app.selvard.data.RoomEventStore
 import app.selvard.data.SelvardDatabase
+import app.selvard.identity.IdentityVault
 
 class SelvardApplication : Application() {
 
@@ -28,6 +29,9 @@ class SelvardApplication : Application() {
     val eventStore: EventStore by lazy {
         RoomEventStore(database.eventDao(), EventPayloadCrypto(KeystoreKeyring().masterKey()))
     }
+
+    /** Encrypted vault for declared identities (Phase 7; private file, Keystore-wrapped key). */
+    val identityVault: IdentityVault by lazy { IdentityVault(this) }
 
     val linkGuardian: LinkGuardian by lazy {
         LinkGuardian(listOf(DevelopmentSampleFeed()))

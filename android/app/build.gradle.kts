@@ -14,8 +14,8 @@ android {
         applicationId = "app.selvard"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "0.2.0-phase6"
+        versionCode = 3
+        versionName = "0.3.0-phase7"
     }
 
     buildTypes {
