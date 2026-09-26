@@ -24,7 +24,10 @@ class PackageInventoryScanner(private val packageManager: PackageManager) {
                     isSystemApp = appInfo?.flags?.and(ApplicationInfo.FLAG_SYSTEM) != 0,
                     installerPackageName = installerOf(info.packageName),
                     targetSdkVersion = appInfo?.targetSdkVersion ?: 0,
-                    requestedPermissions = info.requestedPermissions?.toList() ?: emptyList(),
+                    // Truncate, never throw: one permission-heavy package must not
+                    // kill the whole scan on a real device.
+                    requestedPermissions = (info.requestedPermissions?.toList() ?: emptyList())
+                        .take(PackageFacts.MAX_PERMISSIONS),
                 )
             }
             .sortedBy { it.packageName }

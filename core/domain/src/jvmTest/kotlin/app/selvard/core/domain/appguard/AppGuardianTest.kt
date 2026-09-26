@@ -202,4 +202,34 @@ class AppGuardianTest {
             facts("com.example.blank", label = "x".repeat(200))
         }
     }
+
+    @Test
+    fun heaviestPackagesAreCappedNeverCrash() {
+        // A permission-heavy real device package must still analyze: findings
+        // are capped at MAX_FINDINGS with the omission stated in reasons.
+        val heavy = facts(
+            "com.example.heavy",
+            installer = null,
+            targetSdk = 22,
+            permissions = List(30) { "android.permission.READ_SMS" } +
+                listOf(
+                    "android.permission.READ_CONTACTS",
+                    "android.permission.ACCESS_FINE_LOCATION",
+                    "android.permission.BIND_NOTIFICATION_LISTENER_SERVICE",
+                    "android.permission.BIND_ACCESSIBILITY_SERVICE",
+                    "android.permission.SYSTEM_ALERT_WINDOW",
+                    "android.permission.READ_CALL_LOG",
+                ),
+        )
+        val analysis = guardian.analyze(heavy)
+        assertTrue(
+            analysis.findings.size <= AppAnalysis.MAX_FINDINGS,
+            "findings must be capped, got ${analysis.findings.size}",
+        )
+        assertTrue(
+            analysis.reasons.any { it.contains("omitted from display") },
+            "omission must be stated in reasons",
+        )
+        assertTrue(analysis.reasons.any { it.contains("not a malware verdict") })
+    }
 }
