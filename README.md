@@ -10,9 +10,9 @@
 
 ## Status
 
-**Phase 4 — Network Guardian (complete).**
+**Phase 5 — App Guardian (complete).**
 
-Two guardians are live. **Link Guardian** (Phase 3): share or paste a link and Selvard analyzes it entirely on-device — URL normalization, punycode/IDN homograph decoding, brand-impersonation heuristics, local feed lookup, and an evidence-first verdict (OPEN / OPEN WITH WARNING / BLOCK / UNKNOWN) with confidence and named reasons — never "safe". **Network Guardian** (Phase 4): an opt-in, split-tunnel DNS filter — only DNS lookups pass through Selvard; all other traffic bypasses it entirely and is never seen by the app. Blocked names are refused purely on-device with zero network egress; allowed lookups are forwarded unmodified to your device's own resolver. No remote tunnel endpoint exists, and nothing is ever claimed "safe". Every check and block is recorded as an encrypted event in the local store. 70/70 unit tests, detekt and Android lint clean. Both feeds are clearly-labeled **development samples**; real blocklists arrive with threat-intelligence integration.
+Three guardians are live. **Link Guardian** (Phase 3): share or paste a link and Selvard analyzes it entirely on-device — evidence-first verdicts, never "safe". **Network Guardian** (Phase 4): an opt-in, split-tunnel DNS filter — only DNS passes through; all other traffic bypasses Selvard entirely. Blocked names are refused on-device with zero egress; allowed lookups go unmodified to your device's own resolver. **App Guardian** (Phase 5): on-demand inventory of installed apps — requested permissions are manifest facts, classified against a transparent catalog with stalkerware capability-combination detection (e.g., SMS + notifications = OTP interception), installer provenance, and legacy-target-SDK findings. Grant state is never read or claimed; no result is a malware verdict. Scans record data-minimizing events: summary counts, and per-app details only for high/critical scores (capped). 80/80 unit tests, detekt and Android lint clean. All feeds are clearly-labeled **development samples**; real blocklists arrive with threat-intelligence integration.
 
 ## What Selvard is
 

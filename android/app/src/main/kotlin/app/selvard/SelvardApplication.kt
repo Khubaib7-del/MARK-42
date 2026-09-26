@@ -7,6 +7,7 @@ import app.selvard.core.domain.eventbus.InMemoryEventBus
 import app.selvard.core.domain.link.DevelopmentSampleFeed
 import app.selvard.core.domain.link.LinkGuardian
 import app.selvard.core.domain.net.DnsFilterEngine
+import app.selvard.core.domain.appguard.AppGuardian
 import app.selvard.core.domain.store.EventStore
 import app.selvard.network.NetworkGuardianState
 import app.selvard.data.KeystoreKeyring
@@ -32,6 +33,8 @@ class SelvardApplication : Application() {
     val sampleFeed by lazy { DevelopmentSampleFeed() }
 
     val dnsFilterEngine by lazy { DnsFilterEngine(listOf(sampleFeed)) }
+
+    val appGuardian by lazy { AppGuardian() }
 
     /** Tunnel state observed by the UI; OFF is the honest default until the tunnel is live. */
     val networkGuardianState by lazy { NetworkGuardianState() }
