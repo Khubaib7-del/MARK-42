@@ -16,6 +16,8 @@
          antivirus apps are a permitted use; requires the Play Permissions
          Declaration Form + prominent disclosure (docs/DRD.md §9). -->
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+    <!-- Record boot events as timestamp facts (Phase 6 Privacy Engine). -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:name=".SelvardApplication"
@@ -24,6 +26,22 @@
         android:label="Selvard"
         android:supportsRtl="true"
         android:theme="@style/Theme.Selvard">
+
+        <!-- Phase 6: install/update/remove + boot facts (system broadcasts only; no polling). -->
+        <receiver
+            android:name=".privacy.SelvardPackageReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_ADDED" />
+                <action android:name="android.intent.action.PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.PACKAGE_REMOVED" />
+                <data android:scheme="package" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
 
         <activity
             android:name=".MainActivity"

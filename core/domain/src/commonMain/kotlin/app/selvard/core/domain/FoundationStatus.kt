@@ -40,9 +40,9 @@ object FoundationStatus {
         EngineStatus(EngineId.LINK_GUARDIAN, EngineLifecycle.ACTIVE, 3),
         EngineStatus(EngineId.NETWORK_GUARDIAN, EngineLifecycle.ACTIVE, 4),
         EngineStatus(EngineId.APP_GUARDIAN, EngineLifecycle.ACTIVE, 5),
-        EngineStatus(EngineId.PRIVACY_MONITOR, EngineLifecycle.PLANNED, 6),
+        EngineStatus(EngineId.PRIVACY_MONITOR, EngineLifecycle.ACTIVE, 6),
         EngineStatus(EngineId.IDENTITY_EXPOSURE, EngineLifecycle.PLANNED, 7),
-        EngineStatus(EngineId.DEVICE_INTEGRITY, EngineLifecycle.PLANNED, 6),
+        EngineStatus(EngineId.DEVICE_INTEGRITY, EngineLifecycle.ACTIVE, 6),
         EngineStatus(EngineId.INCIDENT_ENGINE, EngineLifecycle.PLANNED, 8),
         EngineStatus(EngineId.SECURITY_POSTURE, EngineLifecycle.ACTIVE, 2),
     )
