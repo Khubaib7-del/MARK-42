@@ -38,7 +38,7 @@ object FoundationStatus {
         EngineStatus(EngineId.EVENT_BUS, EngineLifecycle.ACTIVE, 2),
         EngineStatus(EngineId.RISK_ENGINE, EngineLifecycle.ACTIVE, 2),
         EngineStatus(EngineId.LINK_GUARDIAN, EngineLifecycle.ACTIVE, 3),
-        EngineStatus(EngineId.NETWORK_GUARDIAN, EngineLifecycle.PLANNED, 4),
+        EngineStatus(EngineId.NETWORK_GUARDIAN, EngineLifecycle.ACTIVE, 4),
         EngineStatus(EngineId.APP_GUARDIAN, EngineLifecycle.PLANNED, 5),
         EngineStatus(EngineId.PRIVACY_MONITOR, EngineLifecycle.PLANNED, 6),
         EngineStatus(EngineId.IDENTITY_EXPOSURE, EngineLifecycle.PLANNED, 7),

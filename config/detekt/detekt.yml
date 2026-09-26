@@ -24,6 +24,10 @@ naming:
     ignoreAnnotated: ['Composable']
 
 style:
+  ThrowsCount:
+    # Hardened parsers (DNS, URL) deliberately throw early and often on every
+    # bounds violation; fail-closed parsing requires many exit points.
+    max: 12
   DataClassContainsFunctions:
     # Data classes carry init-block validation of the data-minimization contract.
     active: false

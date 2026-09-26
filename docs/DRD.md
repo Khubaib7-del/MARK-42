@@ -87,7 +87,8 @@ Schema is append-only and versioned (`schema_version`). Migrations never rewrite
 
 | Permission | Justification | Play requirement |
 | --- | --- | --- |
-| INTERNET | TI lookups | none |
+| INTERNET | DNS forwarding to the user's resolver; TI lookups (Phase 7) | none |
+| ACCESS_NETWORK_STATE | Read the device's current DNS resolver (so filtering never silently changes it) | none |
 | FOREGROUND_SERVICE + FOREGROUND_SERVICE_SPECIAL_USE (VPN) | Network Guardian | VpnService declaration form |
 | POST_NOTIFICATIONS | Security notifications | runtime permission |
 | RECEIVE_BOOT_COMPLETED | Record boot events | normal |

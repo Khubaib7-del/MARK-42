@@ -24,6 +24,7 @@ Every dependency is attack surface — especially in a security product, where t
 | kotlinx-coroutines-core/test 1.9.0 | Event bus, store, engines | Pinned (Phase 2) | First-party JetBrains |
 | Room 2.6.1 (runtime/ktx/compiler via KSP 2.0.21-1.0.28) | Encrypted event store | Pinned (Phase 2) | First-party; schema exported to `/android/app/schemas`; KSP1 forced (Room not KSP2-ready) |
 | (none) | Phase 3 Link Guardian URL pipeline | Zero new dependencies | Pure-Kotlin URL parser, RFC 3492 punycode decoder, Damerau-Levenshtein, brand seed list — no library intake; full public-suffix list deferred as a deliberate future decision |
+| (none) | Phase 4 Network Guardian DNS filter | Zero new dependencies | Pure-Kotlin RFC 1035 DNS parser, IPv4/UDP packet codec (checksum verified against an independently computed golden value), filter engine + tier policy — no library intake; VpnService is a platform API |
 | SQLCipher (community/android-database-sqlcipher) | DB encryption | **Review required** | Third-party; verify maintenance status vs Room + field-level Keystore alternative; decide in ADR-006 addendum before adoption |
 | WorkManager | Background jobs | Approved in principle | First-party |
 | kotlinx.serialization | Event schema | Approved in principle | First-party, deterministic |

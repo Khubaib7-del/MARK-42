@@ -70,6 +70,7 @@ class FoundationStatusTest {
                 EngineId.RISK_ENGINE,
                 EngineId.SECURITY_POSTURE,
                 EngineId.LINK_GUARDIAN,
+                EngineId.NETWORK_GUARDIAN,
             ),
             active.toSet(),
         )
