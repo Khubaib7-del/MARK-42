@@ -8,6 +8,10 @@
 
 *Selvard* means **the self-warden**: a guardian that never outsources your trust. Local-first by architecture, honest by contract, proprietary by design.
 
+## Try the current build
+
+[**Download `app-debug.apk` (v0.1.0, Phase 5)**](https://github.com/Khubaib7-del/MARK-42/releases/download/v0.1.0-phase5/app-debug.apk) — sideload on any Android 8.0+ device. Includes Link Guardian (share or paste a link), App Guardian (on-demand app inventory scan), and the opt-in Network Guardian DNS filter. Debug-signed for testing; the release notes list every honest limit of this build.
+
 ## Status
 
 **Phase 5 — App Guardian (complete).**
