@@ -54,7 +54,9 @@ class FoundationStatusTest {
     }
 
     @Test
-    fun linkGuardianIsTheOnlyActiveGuardianSincePhase3() {
+    fun activeEnginesMatchPhase6() {
+        // Phase 6 activates Privacy Monitor and Device Integrity; the
+        // pre-Phase-6 name above no longer describes this expectation.
         val active = FoundationStatus.engines
             .filter { it.lifecycle == EngineLifecycle.ACTIVE }
             .map { it.engine }
@@ -72,12 +74,14 @@ class FoundationStatusTest {
                 EngineId.LINK_GUARDIAN,
                 EngineId.NETWORK_GUARDIAN,
                 EngineId.APP_GUARDIAN,
+                EngineId.PRIVACY_MONITOR,
+                EngineId.DEVICE_INTEGRITY,
             ),
             active.toSet(),
         )
         assertTrue(
             FoundationStatus.anyProtectionActive,
-            "Link Guardian is active: explicit-link protection may now be claimed",
+            "Guardians are active: explicit-link, DNS-filter and inventory protection may now be claimed",
         )
     }
 
