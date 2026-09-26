@@ -22,6 +22,8 @@
     <application
         android:name=".SelvardApplication"
         android:allowBackup="false"
+        android:usesCleartextTraffic="false"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:icon="@mipmap/ic_launcher"
         android:label="Selvard"
         android:supportsRtl="true"

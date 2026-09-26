@@ -142,27 +142,35 @@ internal object VaultCodec {
             }
         }
         require(depth == 0) { "vault payload malformed" }
+        require(out.size <= MAX_ENTRIES) { "vault payload too large" }
         return out
     }
 
     private fun parseOne(obj: String): VaultEntry {
+        // Fixed-format record: tampering with the field names breaks the seal
+        // (GCM auth) before this runs; structural checks below bound the damage
+        // a corrupted-but-authentic record can do.
+        require(obj.length <= MAX_ENTRY_CHARS) { "vault entry too large" }
         fun str(key: String): String {
             val k = "\"$key\":"
             val at = obj.indexOf(k)
             require(at >= 0) { "vault entry missing $key" }
             var i = at + k.length
+            require(i < obj.length) { "vault entry $key truncated" }
             require(obj[i] == '"') { "vault entry $key not a string" }
             i++
             val sb = StringBuilder()
             while (i < obj.length && obj[i] != '"') {
                 if (obj[i] == '\\') {
                     i++
+                    require(i < obj.length) { "vault entry $key truncated escape" }
                     sb.append(obj[i])
                 } else {
                     sb.append(obj[i])
                 }
                 i++
             }
+            require(i < obj.length) { "vault entry $key unterminated" }
             return sb.toString()
         }
         fun num(key: String): Long {
@@ -170,10 +178,21 @@ internal object VaultCodec {
             val at = obj.indexOf(k)
             require(at >= 0) { "vault entry missing $key" }
             val rest = obj.substring(at + k.length).takeWhile { it != ',' && it != '}' }
+            require(rest.isNotEmpty() && rest.length <= MAX_NUMBER_CHARS && rest.all { it.isDigit() }) {
+                "vault entry $key not a number"
+            }
             return rest.toLong()
         }
-        return VaultEntry(str("id"), str("n"), str("m"), num("t"), num("v").toInt())
+        val id = str("id").also { require(it.length <= MAX_FIELD_CHARS) { "vault entry id too long" } }
+        val normalized = str("n")
+            .also { require(it.length <= MAX_FIELD_CHARS) { "vault entry address too long" } }
+        val mode = str("m").also { require(it.length <= MAX_FIELD_CHARS) { "vault entry mode too long" } }
+        return VaultEntry(id, normalized, mode, num("t"), num("v").toInt())
     }
 
     private fun q(s: String): String = "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+    private const val MAX_ENTRIES = 512
+    private const val MAX_ENTRY_CHARS = 4096
+    private const val MAX_FIELD_CHARS = 1024
+    private const val MAX_NUMBER_CHARS = 20
 }
