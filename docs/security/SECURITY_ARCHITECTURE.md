@@ -37,7 +37,8 @@
 - gitleaks in CI; signing keys in environment only.
 
 ### 3.4 Event store
-- Append-only, encrypted; integrity via chained content hashes (tamper evidence for our own records — non-cryptographic-binding to OS truth, documented).
+- Append-only, encrypted; each row is AES-GCM-sealed (tamper-evident at rest —
+- non-cryptographic-binding to OS truth, documented). No hash chain is claimed.
 - Retention enforced by policy engine job; user deletion propagates everywhere including derived posture caches.
 
 ## 4. Decision integrity

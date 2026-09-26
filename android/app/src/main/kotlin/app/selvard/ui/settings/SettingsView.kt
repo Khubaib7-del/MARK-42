@@ -21,6 +21,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -41,6 +42,11 @@ fun SettingsView() {
     val context = LocalContext.current
     val app = context.applicationContext as SelvardApplication
     val scope = rememberCoroutineScope()
+    // Tap-jacking guard: Compose 1.7 has no filterTouchesWhenObscured, so the
+    // platform View flag is set on the hosting view (covers this screen's
+    // destructive delete action against taps through overlay windows).
+    val hostView = LocalView.current
+    androidx.compose.runtime.SideEffect { hostView.filterTouchesWhenObscured = true }
     var receipt by remember { mutableStateOf<String?>(null) }
     var deleting by remember { mutableStateOf(false) }
     var deleteError by remember { mutableStateOf<String?>(null) }

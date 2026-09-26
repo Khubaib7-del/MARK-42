@@ -24,6 +24,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import app.selvard.SelvardApplication
 import app.selvard.core.domain.identity.DeclaredIdentity
@@ -189,6 +191,11 @@ private fun IdentityFormSection(
         onValueChange = { form.apiKey = it },
         label = { Text("HIBP API key (stored for this session only)") },
         singleLine = true,
+        visualTransformation = PasswordVisualTransformation(),
+        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+            keyboardType = KeyboardType.Password,
+            autoCorrectEnabled = false,
+        ),
         modifier = Modifier.fillMaxWidth(),
     )
     Spacer(Modifier.height(8.dp))

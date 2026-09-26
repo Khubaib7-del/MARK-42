@@ -16,8 +16,12 @@ object IpPacketCodec {
         if (packet.size < IP_HEADER_LEN + UDP_HEADER_LEN) return false
         if (packet[0].toInt() shr 4 != 4) return false
         val ihl = (packet[0].toInt() and 0x0F) * 4
+        // IHL is a 4-bit header length: valid IPv4 headers are 20..60 bytes.
+        // An absurd IHL must fail closed here, never index out of bounds below.
+        if (ihl < IP_HEADER_LEN || ihl > 60) return false
         if (packet.size < ihl + UDP_HEADER_LEN) return false
         if (packet[9].toInt() and 0xFF != UDP_PROTO) return false
+        if (ihl + 4 > packet.size) return false
         return readU16(packet, ihl + 2) == DNS_PORT
     }
 
@@ -25,6 +29,8 @@ object IpPacketCodec {
     fun buildUdpResponsePacket(query: ByteArray, dnsPayload: ByteArray): ByteArray? {
         if (query.size < IP_HEADER_LEN + UDP_HEADER_LEN) return null
         val ihl = (query[0].toInt() and 0x0F) * 4
+        if (ihl < IP_HEADER_LEN || ihl > 60) return null
+        if (query.size < ihl + UDP_HEADER_LEN) return null
         val clientPort = readU16(query, ihl)
         val totalLen = IP_HEADER_LEN + UDP_HEADER_LEN + dnsPayload.size
         if (totalLen > MAX_PACKET) return null
@@ -45,6 +51,7 @@ object IpPacketCodec {
     }
 
     fun ipChecksum(header: ByteArray, length: Int): Int {
+        require(length % 2 == 0 && length >= 0 && length <= header.size) { "checksum window out of bounds" }
         var sum = 0L
         var i = 0
         while (i < length) {
@@ -55,8 +62,10 @@ object IpPacketCodec {
         return (sum.toInt().inv()) and 0xFFFF
     }
 
-    fun readU16(b: ByteArray, offset: Int): Int =
-        ((b[offset].toInt() and 0xFF) shl 8) or (b[offset + 1].toInt() and 0xFF)
+    fun readU16(b: ByteArray, offset: Int): Int {
+        require(offset >= 0 && offset + 2 <= b.size) { "u16 out of bounds" }
+        return ((b[offset].toInt() and 0xFF) shl 8) or (b[offset + 1].toInt() and 0xFF)
+    }
 
     private fun writeU16(b: ByteArray, offset: Int, value: Int) {
         b[offset] = ((value shr 8) and 0xFF).toByte()

@@ -32,6 +32,15 @@ class IdentityExposureTest {
     }
 
     @Test
+    fun maskingNeverThrowsOnCorruptStoredValues() {
+        // A corrupted vault record must render something harmless, never crash the list.
+        assertEquals("***", IdentityExposure.maskEmail(""))
+        assertEquals("***", IdentityExposure.maskEmail("no-at-sign"))
+        assertEquals("***", IdentityExposure.maskEmail("@example.com"))
+        assertEquals("***", IdentityExposure.maskEmail("user@"))
+    }
+
+    @Test
     fun prefixSuffixSplitIsSix() {
         val hash = IdentityExposure.addressHash("test@example.com")
         assertEquals("567159", IdentityExposure.rangePrefix(hash))

@@ -141,7 +141,9 @@ class SelvardVpnService : VpnService() {
             category = EventCategory.NETWORK,
             severity = Severity.HIGH,
             confidence = Confidence.HIGH,
-            affectedAsset = AffectedAsset(AssetType.URL, host),
+            // Host comes off the wire: truncate to the data-minimization limit
+            // so a >128-char name records instead of throwing inside the scope.
+            affectedAsset = AffectedAsset(AssetType.URL, host.take(AffectedAsset.MAX_REF_LENGTH)),
             evidence = listOf(
                 Evidence("dns_blocked", host.take(Evidence.MAX_VALUE_LENGTH), decision.listName ?: "local"),
             ),
@@ -203,12 +205,17 @@ class DnsTunnelPump(
     private fun handlePacket(packet: ByteArray, socket: DatagramSocket) {
         if (!IpPacketCodec.isIpv4UdpToDnsPort(packet)) return // not ours: only DNS is routed in
         val ihl = (packet[0].toInt() and 0x0F) * 4
+        // IHL comes off the wire: re-validate before slicing (fail closed, never crash).
+        if (ihl < 20 || ihl > 60 || packet.size < ihl + 8) return
         val payload = packet.copyOfRange(ihl + 8, packet.size)
         val query = runCatching { DnsParser.parse(payload) }.getOrNull()
         // Fail closed: unparseable DNS gets no answer at all.
         if (query == null || query.questions.isEmpty()) return
         val host = query.questions.first().name
-        val decision = engine.decide(host)
+        // The queried name comes off the wire: a blank/absurd name must fail
+        // closed (no answer), never throw up into the pump loop (which would
+        // kill filtering entirely — the fail-open-via-crash hole).
+        val decision = runCatching { engine.decide(host) }.getOrNull() ?: return
         val responsePayload = when {
             decision.blocked -> {
                 onBlocked(host, decision)

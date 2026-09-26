@@ -59,8 +59,11 @@ object IdentityExposure {
 
     /** Masked display form: keeps no more than the first char of the local part. */
     fun maskEmail(normalized: String): String {
-        val (local, domain) = normalized.split("@")
-        return "${local.first()}***@$domain"
+        val at = normalized.indexOf('@')
+        // Stored values are validated at entry, but a corrupted vault record
+        // must render something harmless, never throw up into the UI.
+        if (at <= 0 || at == normalized.length - 1) return "***"
+        return "${normalized[0]}***@${normalized.substring(at + 1)}"
     }
 
     /** Uppercase SHA-1 hex of the normalized address (HIBP range format). */
@@ -78,7 +81,10 @@ object IdentityExposure {
     /** Device-side k-anonymity match: suffix equality against the range entries. */
     fun matchRange(hashHex: String, entries: List<RangeEntry>): List<String> {
         val suffix = rangeSuffix(hashHex)
-        return entries.filter { it.hashSuffix.uppercase() == suffix }.flatMap { it.websites }.distinct().sorted()
+        // HIBP serves lowercase hex; compare case-insensitively so a matched
+        // breach is never missed because of hex case (false-negative hole).
+        return entries.filter { it.hashSuffix.uppercase() == suffix.uppercase() }
+            .flatMap { it.websites }.distinct().sorted()
     }
 
     /** Honest one-line summary of a check outcome. Never says safe/clean. */
@@ -141,21 +147,34 @@ object HibpResponses {
 
     private val lenient = Json { ignoreUnknownKeys = true }
 
-    fun parseRange(raw: String): List<RangeEntry> =
-        lenient.decodeFromString(kotlinx.serialization.builtins.ListSerializer(RangeEntry.serializer()), raw)
+    // Bodies come off the network: cap before decoding so a hostile proxy
+    // cannot force multi-megabyte JSON parses (memory exhaustion).
+    const val MAX_RESPONSE_CHARS = 512 * 1024
+    const val MAX_RANGE_ENTRIES = 2048
+    const val MAX_BREACHES = 256
+
+    fun parseRange(raw: String): List<RangeEntry> {
+        require(raw.length <= MAX_RESPONSE_CHARS) { "range response too large" }
+        return lenient.decodeFromString(
+            kotlinx.serialization.builtins.ListSerializer(RangeEntry.serializer()),
+            raw,
+        ).take(MAX_RANGE_ENTRIES)
+    }
 
     /** Minimizes full breach objects to names, dates and capped data classes. */
-    fun parseBreaches(raw: String): List<BreachRecord> =
-        lenient.decodeFromString(
+    fun parseBreaches(raw: String): List<BreachRecord> {
+        require(raw.length <= MAX_RESPONSE_CHARS) { "breach response too large" }
+        return lenient.decodeFromString(
             kotlinx.serialization.builtins.ListSerializer(HibpBreachDto.serializer()),
             raw,
-        ).map {
+        ).take(MAX_BREACHES).map {
             BreachRecord(
                 name = it.name,
                 breachDate = it.breachDate,
                 dataClasses = (it.dataClasses ?: emptyList()).take(IdentityExposure.MAX_DATA_CLASSES),
             )
         }
+    }
 }
 
 /** Pure-Kotlin SHA-1 (FIPS 180-4): commonMain cannot use java.security. */

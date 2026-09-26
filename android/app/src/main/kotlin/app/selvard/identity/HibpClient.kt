@@ -81,14 +81,16 @@ class UrlHttpFetch : HttpFetch {
                     readTimeout = TIMEOUT_MS
                 }
                 when (conn.responseCode) {
-                    200 -> HttpResponse.Ok(conn.inputStream.bufferedReader().readText())
+                    200 -> HttpResponse.Ok(readBounded(conn.inputStream.bufferedReader()))
                     404 -> HttpResponse.NotFound
                     429 -> {
                         val retry = conn.getHeaderField("retry-after")?.toIntOrNull()
                         HttpResponse.RateLimited(retry)
                     }
                     else -> {
-                        val msg = runCatching { conn.errorStream?.bufferedReader()?.readText() }.getOrNull()
+                        val msg = runCatching {
+                            conn.errorStream?.bufferedReader()?.let(::readBounded)
+                        }.getOrNull()
                         HttpResponse.Failure(conn.responseCode, (msg ?: "error").take(256))
                     }
                 }
@@ -97,5 +99,24 @@ class UrlHttpFetch : HttpFetch {
 
     companion object {
         const val TIMEOUT_MS = 15_000
+        /**
+         * Largest HIBP body kept in memory. Range responses are small; breach
+         * lists are bounded by IdentityExposure.MAX_BREACH_NAMES_RECORDED at
+         * parse time. Anything larger is truncated before parsing.
+         */
+        const val MAX_BODY_CHARS = 256 * 1024
     }
+}
+
+/** Reads at most [UrlHttpFetch.MAX_BODY_CHARS]; the body comes off the network. */
+private fun readBounded(reader: java.io.BufferedReader): String {
+    val out = StringBuilder()
+    val buf = CharArray(8192)
+    while (out.length < UrlHttpFetch.MAX_BODY_CHARS) {
+        val n = reader.read(buf)
+        if (n <= 0) break
+        val room = UrlHttpFetch.MAX_BODY_CHARS - out.length
+        out.append(buf, 0, minOf(n, room))
+    }
+    return out.toString()
 }

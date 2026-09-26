@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Phase 10: cleartext is banned app-wide (manifest usesCleartextTraffic=false
+     is the enforcement; this config is the explicit statement). No per-domain
+     cleartext exceptions exist. HIBP egress is https-only (HibpClient). -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>
