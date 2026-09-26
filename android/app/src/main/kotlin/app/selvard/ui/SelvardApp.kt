@@ -40,7 +40,7 @@ fun SelvardApp() {
     SelvardTheme {
         Surface(modifier = Modifier.fillMaxSize()) {
             var page by remember { mutableIntStateOf(0) }
-            val lastPage = OnboardingContent.pages.size + 3 // consent, app guardian, privacy, foundation status
+            val lastPage = OnboardingContent.pages.size + 4 // consent, app guardian, privacy, identity, status
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -62,6 +62,8 @@ fun SelvardApp() {
                         AppGuardianView()
                     } else if (page == OnboardingContent.pages.size + 2) {
                         PrivacyMonitorView()
+                    } else if (page == OnboardingContent.pages.size + 3) {
+                        IdentityExposureView()
                     } else {
                         FoundationStatusView()
                     }
@@ -87,8 +89,9 @@ private fun FoundationBanner(modifier: Modifier = Modifier) {
     ) {
         Text(
             text = "SELVARD PREVIEW — Link, Network (opt-in DNS filter), App, and Privacy " +
-                "Monitor (installs, permission snapshots, boots, integrity facts) are active. " +
-                "Identity and Incident engines are not yet implemented; they are listed below.",
+                "Monitor (installs, permission snapshots, boots, integrity facts), and Identity " +
+                "Exposure (consented HIBP checks) are active. The Incident engine is not yet " +
+                "implemented; it is listed below.",
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(12.dp),

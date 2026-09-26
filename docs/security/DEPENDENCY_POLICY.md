@@ -26,6 +26,7 @@ Every dependency is attack surface — especially in a security product, where t
 | (none) | Phase 3 Link Guardian URL pipeline | Zero new dependencies | Pure-Kotlin URL parser, RFC 3492 punycode decoder, Damerau-Levenshtein, brand seed list — no library intake; full public-suffix list deferred as a deliberate future decision |
 | (none) | Phase 4 Network Guardian DNS filter | Zero new dependencies | Pure-Kotlin RFC 1035 DNS parser, IPv4/UDP packet codec (checksum verified against an independently computed golden value), filter engine + tier policy — no library intake; VpnService is a platform API |
 | (none) | Phase 5 App Guardian inventory analysis | Zero new dependencies | Pure-Kotlin permission catalog + capability scoring; PackageManager is a platform API; QUERY_ALL_PACKAGES declared for inventory (Play declaration required at release) |
+| (none) | Phase 7 Identity Exposure HIBP checks | Zero new dependencies | Platform HttpsURLConnection for HIBP v3 (egress allowlist: haveibeenpwned.com only); pure-Kotlin SHA-1 (FIPS 180-4) for k-anonymity prefixes; Keystore-wrapped AES-256-GCM vault file — no library intake (OkHttp stays approved-in-principle, unused) |
 | SQLCipher (community/android-database-sqlcipher) | DB encryption | **Review required** | Third-party; verify maintenance status vs Room + field-level Keystore alternative; decide in ADR-006 addendum before adoption |
 | WorkManager | Background jobs | Approved in principle | First-party |
 | kotlinx.serialization | Event schema | Approved in principle | First-party, deterministic |

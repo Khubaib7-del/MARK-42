@@ -54,9 +54,9 @@ class FoundationStatusTest {
     }
 
     @Test
-    fun activeEnginesMatchPhase6() {
-        // Phase 6 activates Privacy Monitor and Device Integrity; the
-        // pre-Phase-6 name above no longer describes this expectation.
+    fun activeEnginesMatchPhase7() {
+        // Phase 7 activates Identity Exposure; rename with each phase so the
+        // expectation documents the current roadmap truth.
         val active = FoundationStatus.engines
             .filter { it.lifecycle == EngineLifecycle.ACTIVE }
             .map { it.engine }
@@ -76,6 +76,7 @@ class FoundationStatusTest {
                 EngineId.APP_GUARDIAN,
                 EngineId.PRIVACY_MONITOR,
                 EngineId.DEVICE_INTEGRITY,
+                EngineId.IDENTITY_EXPOSURE,
             ),
             active.toSet(),
         )
