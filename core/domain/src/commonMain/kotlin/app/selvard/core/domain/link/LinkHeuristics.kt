@@ -88,23 +88,8 @@ class LinkHeuristics {
             if (brand.length < 3) continue
             val sensitive = loweredHost.containsAny(BrandList.sensitiveWords)
             if (!isKnownBrand) {
-                val distance = damerauLevenshtein(domainLabel, brand)
-                if (distance in 1..2 && domainLabel != brand) {
-                    findings += LinkFinding(
-                        "brand_typosquat",
-                        "'$domainLabel' resembles '$brand' ($distance edit${if (distance == 1) "" else "s"})",
-                        // SECURITY_TESTING §8: heuristic findings are capped at SUSPICIOUS.
-                        LinkRiskLevel.SUSPICIOUS, "heuristic",
-                    )
-                }
-                if (domainLabel != brand && domainLabel.contains(brand)) {
-                    findings += LinkFinding(
-                        "brand_in_host",
-                        "host embeds '$brand' inside '$domainLabel'" +
-                            if (sensitive) " with sensitive wording" else "",
-                        LinkRiskLevel.SUSPICIOUS, "heuristic",
-                    )
-                }
+                typosquatFinding(domainLabel, brand, findings)
+                embeddedBrandFinding(domainLabel, brand, sensitive, findings)
             }
             if (domainLabel == brand && tld !in COMMON_TLDS) {
                 findings += LinkFinding(
@@ -113,6 +98,38 @@ class LinkHeuristics {
                     LinkRiskLevel.SUSPICIOUS, "heuristic",
                 )
             }
+        }
+    }
+
+    private fun typosquatFinding(domainLabel: String, brand: String, findings: MutableList<LinkFinding>) {
+        val distance = damerauLevenshtein(domainLabel, brand)
+        // Short labels collide by chance ("bbc" is 2 edits from "hsbc"
+        // but is the real domain): distance-2 needs longer labels.
+        val nearMiss = distance == 1 ||
+            (distance == 2 && domainLabel.length >= 4 && brand.length >= 4)
+        if (nearMiss && domainLabel != brand) {
+            findings += LinkFinding(
+                "brand_typosquat",
+                "'$domainLabel' resembles '$brand' ($distance edit${if (distance == 1) "" else "s"})",
+                // SECURITY_TESTING §8: heuristic findings are capped at SUSPICIOUS.
+                LinkRiskLevel.SUSPICIOUS, "heuristic",
+            )
+        }
+    }
+
+    private fun embeddedBrandFinding(
+        domainLabel: String,
+        brand: String,
+        sensitive: Boolean,
+        findings: MutableList<LinkFinding>,
+    ) {
+        if (domainLabel != brand && domainLabel.contains(brand)) {
+            findings += LinkFinding(
+                "brand_in_host",
+                "host embeds '$brand' inside '$domainLabel'" +
+                    if (sensitive) " with sensitive wording" else "",
+                LinkRiskLevel.SUSPICIOUS, "heuristic",
+            )
         }
     }
 
