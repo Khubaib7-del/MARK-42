@@ -34,12 +34,20 @@ import app.selvard.network.NetworkGuardianState
 import app.selvard.network.SelvardVpnService
 import app.selvard.ui.theme.SelvardTheme
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.saveable.rememberSaveable
+import app.selvard.ui.launch.BlueprintLaunchScreen
 
 @Composable
 fun SelvardApp() {
-    var onboardingDone by remember { mutableStateOf(false) }
-    if (onboardingDone) {
-        SelvardNav()
+    var showBlueprintIntro by rememberSaveable { mutableStateOf(true) }
+    var onboardingDone by rememberSaveable { mutableStateOf(false) }
+
+    if (showBlueprintIntro) {
+        BlueprintLaunchScreen(
+            onAnimationComplete = { showBlueprintIntro = false },
+        )
+    } else if (onboardingDone) {
+        SelvardNav(onReplayIntro = { showBlueprintIntro = true })
     } else {
         SelvardTheme {
             Surface(modifier = Modifier.fillMaxSize()) {
@@ -177,7 +185,10 @@ internal fun NavigationRow(
             Spacer(modifier = Modifier.height(1.dp))
         }
         if (page < lastPage) {
-            Button(onClick = onNext) { Text("Continue") }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(onClick = onDone) { Text("Skip") }
+                Button(onClick = onNext) { Text("Continue") }
+            }
         } else {
             Button(onClick = onDone) { Text("Enter Selvard") }
         }
