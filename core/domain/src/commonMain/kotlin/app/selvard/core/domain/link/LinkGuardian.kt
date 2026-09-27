@@ -6,6 +6,8 @@ import app.selvard.core.domain.event.Confidence
  * Link Guardian (Phase 3): URL -> evidence-backed verdict. Deterministic pure
  * function of (url, feeds). Heuristics alone never exceed OPEN_WITH_WARNING;
  * only matched intelligence or scheme policy can BLOCK (SECURITY_TESTING §8).
+ * A throwing feed is a degraded provider (DRD §10): it never crashes analysis;
+ * with no usable intelligence the verdict is UNKNOWN ("limited analysis").
  */
 class LinkGuardian(private val feeds: List<LocalThreatFeed> = emptyList()) {
 
@@ -28,7 +30,12 @@ class LinkGuardian(private val feeds: List<LocalThreatFeed> = emptyList()) {
         val policyBlock = findings.any { it.risk == LinkRiskLevel.MALICIOUS }
         val policyKinds = findings.filter { it.risk == LinkRiskLevel.MALICIOUS }.map { it.kind }
 
-        val feedMatches = feeds.mapNotNull { feed -> feed.lookupHost(url.host) }
+        var intelDegraded = false
+        val feedMatches = feeds.mapNotNull { feed ->
+            val lookup = runCatching { feed.lookupHost(url.host) }
+            if (lookup.isFailure) intelDegraded = true
+            lookup.getOrNull()
+        }
         if (feedMatches.isNotEmpty()) {
             val match = feedMatches.first()
             return LinkVerdict(
@@ -71,13 +78,18 @@ class LinkGuardian(private val feeds: List<LocalThreatFeed> = emptyList()) {
             )
         }
 
-        if (feeds.isEmpty()) {
+        if (feeds.isEmpty() || intelDegraded) {
             return LinkVerdict(
                 state = LinkVerdictState.UNKNOWN,
                 confidence = Confidence.LOW,
                 findings = emptyList(),
                 reasons = listOf(
-                    "limited analysis: no threat intelligence available (offline or not configured)",
+                    if (intelDegraded) {
+                        "limited analysis: threat intelligence unavailable " +
+                            "(lookup failure; provider marked degraded)"
+                    } else {
+                        "limited analysis: no threat intelligence available (offline or not configured)"
+                    },
                     NO_SAFETY_CLAIM,
                 ),
             )
