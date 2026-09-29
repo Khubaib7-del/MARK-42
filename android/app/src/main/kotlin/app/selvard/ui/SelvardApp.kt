@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Wifi
 import androidx.compose.material3.Button
 import androidx.compose.material3.Switch
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +34,8 @@ import app.selvard.core.domain.OnboardingContent
 import app.selvard.core.domain.OnboardingPage
 import app.selvard.network.NetworkGuardianState
 import app.selvard.network.SelvardVpnService
+import app.selvard.ui.glass.GlassCard
+import app.selvard.ui.glass.GlassHero
 import app.selvard.ui.theme.SelvardTheme
 import androidx.compose.runtime.collectAsState
 
@@ -117,10 +121,8 @@ internal fun FoundationBanner(modifier: Modifier = Modifier) {
         color = MaterialTheme.colorScheme.surfaceVariant,
     ) {
         Text(
-            text = "SELVARD PREVIEW — Link, Network (opt-in DNS filter), App, and Privacy " +
-                "Monitor (installs, permission snapshots, boots, integrity facts), and Identity " +
-                "Exposure (consented HIBP checks), and the Incident Timeline (temporal " +
-                "grouping only — never causal) are active. All planned engines are now built.",
+            text = "Selvard preview — everything runs on this device. " +
+                "Check the Home tab for what is on and what is not.",
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(12.dp),
@@ -195,65 +197,72 @@ internal fun NetworkGuardianConsentView() {
     val app = context.applicationContext as app.selvard.SelvardApplication
     val running by app.networkGuardianState.running.collectAsState()
     Column {
-        Text(
-            text = "Network Guardian",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.SemiBold,
+        GlassHero(
+            icon = Icons.Rounded.Wifi,
+            iconDescription = "Network filter",
+            title = "Network Guardian",
+            subtitle = "A local filter for domain-name lookups (DNS) on this device.",
         )
         Spacer(modifier = Modifier.height(12.dp))
-        Text(
-            text = "What this does",
-            style = MaterialTheme.typography.titleMedium,
-        )
-        Text(
-            text = "When enabled, Selvard sets up a local VPN tunnel that filters " +
-                "domain-name lookups (DNS) on this device. Lookups for known malware " +
-                "and phishing destinations are refused. Allowed lookups are forwarded, " +
-                "unmodified, to your device's own configured resolver.",
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.padding(top = 4.dp),
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(
-            text = "What this does NOT do",
-            style = MaterialTheme.typography.titleMedium,
-        )
-        Text(
-            text = "Selvard does not route your traffic to any server — filtering happens " +
-                "on this device only. Only DNS lookups pass through Selvard; all other " +
-                "traffic bypasses it entirely and is never seen by this app. Selvard " +
-                "never inspects the content of your connections. Records of blocked " +
-                "destinations stay on this device.",
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.padding(top = 4.dp),
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(
-            text = "Development sample data: filtering currently uses a bundled sample " +
-                "list, not real threat intelligence.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Spacer(modifier = Modifier.height(20.dp))
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        GlassCard(
+            title = "What this does",
+            icon = Icons.Rounded.Wifi,
+            iconDescription = "What this does",
         ) {
-            Switch(
-                checked = running,
-                onCheckedChange = { enabled ->
-                    val intent = android.content.Intent(context, SelvardVpnService::class.java)
-                    if (enabled) {
-                        androidx.core.content.ContextCompat.startForegroundService(context, intent)
-                        app.networkGuardianState.setRunning(true)
-                    } else {
-                        intent.action = SelvardVpnService.ACTION_STOP
-                        context.startService(intent)
-                        app.networkGuardianState.setRunning(false)
-                    }
-                },
+            Text(
+                text = "When enabled, Selvard sets up a local VPN tunnel that filters " +
+                    "domain-name lookups (DNS) on this device. Lookups for known malware " +
+                    "and phishing destinations are refused. Allowed lookups are forwarded, " +
+                    "unmodified, to your device's own configured resolver.",
+                style = MaterialTheme.typography.bodyLarge,
             )
-            Text(if (running) "PROTECTED (local filtering)" else "OFF — not filtering")
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+        GlassCard(
+            title = "What this does NOT do",
+        ) {
+            Text(
+                text = "Selvard does not route your traffic to any server — filtering happens " +
+                    "on this device only. Only DNS lookups pass through Selvard; all other " +
+                    "traffic bypasses it entirely and is never seen by this app. Selvard " +
+                    "never inspects the content of your connections. Records of blocked " +
+                    "destinations stay on this device.",
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            Text(
+                text = "Development sample data: filtering currently uses a bundled sample " +
+                    "list, not real threat intelligence.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+        GlassCard(
+            title = if (running) "PROTECTED (local filtering)" else "OFF — not filtering",
+            icon = Icons.Rounded.Wifi,
+            iconDescription = "Filter state",
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Switch(
+                    checked = running,
+                    onCheckedChange = { enabled ->
+                        val intent = android.content.Intent(context, SelvardVpnService::class.java)
+                        if (enabled) {
+                            androidx.core.content.ContextCompat.startForegroundService(context, intent)
+                            app.networkGuardianState.setRunning(true)
+                        } else {
+                            intent.action = SelvardVpnService.ACTION_STOP
+                            context.startService(intent)
+                            app.networkGuardianState.setRunning(false)
+                        }
+                    },
+                )
+                Text(if (running) "PROTECTED (local filtering)" else "OFF — not filtering")
+            }
         }
     }
 }

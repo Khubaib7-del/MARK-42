@@ -1,16 +1,19 @@
 package app.selvard.ui.home
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Apps
+import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Shield
+import androidx.compose.material.icons.rounded.Wifi
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -19,16 +22,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.selvard.SelvardApplication
 import app.selvard.core.domain.event.EventQuery
 import app.selvard.core.domain.risk.RiskEngine
 import app.selvard.core.domain.ux.AccessibilityPolicy
+import app.selvard.ui.glass.GlassCard
+import app.selvard.ui.glass.GlassHelperText
+import app.selvard.ui.glass.GlassHero
+import app.selvard.ui.glass.GlassPrimaryButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -67,62 +73,46 @@ fun HomeView(onOpenSection: (String) -> Unit) {
         }
     }
 
-    Column(
+    androidx.compose.foundation.layout.Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
     ) {
-        Text(
-            "Selvard",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.semantics { heading() },
-        )
-        Text(
-            "A privacy-first security environment. Analysis runs on this device; " +
+        GlassHero(
+            icon = Icons.Rounded.Shield,
+            iconDescription = "Selvard shield mark",
+            title = "Selvard",
+            subtitle = "A privacy-first security environment. Analysis runs on this device; " +
                 "nothing here means safe — only what was actually observed.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 4.dp, bottom = 12.dp),
         )
-        Text(
-            "Current posture",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.semantics { heading() },
-        )
-        Text(
-            postureLine ?: "Not assessed yet — refresh reads recorded events only.",
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier
-                .padding(top = 4.dp)
-                .semantics { contentDescription = "Current security posture in words" },
-        )
-        refreshError?.let {
+        Spacer(Modifier.height(12.dp))
+        GlassCard(
+            title = "Current posture",
+            icon = Icons.Rounded.Home,
+            iconDescription = "Posture status",
+            actionLabel = if (refreshing) "Reading…" else "Refresh posture",
+            onAction = { if (!refreshing) refresh() },
+        ) {
             Text(
-                it,
+                postureLine ?: "Not assessed yet — refresh reads recorded events only.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(top = 4.dp),
+                modifier = Modifier.semantics { contentDescription = "Current security posture in words" },
+            )
+            refreshError?.let { GlassHelperText(it, error = true) }
+        }
+        Spacer(Modifier.height(12.dp))
+        GlassCard(
+            title = "What Selvard cannot do — stated honestly",
+        ) {
+            Text(
+                "It cannot read your messages. It cannot see inside encrypted " +
+                    "traffic — and never will. It cannot intercept links you tap; " +
+                    "share a link to Selvard to have it checked.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        Spacer(Modifier.height(8.dp))
-        Button(onClick = ::refresh, enabled = !refreshing) {
-            Text(if (refreshing) "Reading…" else "Refresh posture")
-        }
-        Spacer(Modifier.height(16.dp))
-        Text(
-            "What Selvard cannot do — stated honestly",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.semantics { heading() },
-        )
-        Text(
-            "It cannot read your messages. It cannot see inside encrypted " +
-                "traffic — and never will. It cannot intercept links you tap; " +
-                "share a link to Selvard to have it checked.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 4.dp, bottom = 12.dp),
-        )
+        Spacer(Modifier.height(12.dp))
         SectionLinks(onOpenSection)
     }
 }
@@ -130,26 +120,20 @@ fun HomeView(onOpenSection: (String) -> Unit) {
 @Composable
 private fun SectionLinks(onOpenSection: (String) -> Unit) {
     val links = listOf(
-        "security" to "Check a suspicious link",
-        "network" to "Network filter status",
-        "apps" to "App inventory",
-        "identity" to "Identity exposure",
-        "timeline" to "Incident timeline",
+        Triple("security", "Check a suspicious link", Icons.Rounded.Shield as ImageVector),
+        Triple("network", "Network filter status", Icons.Rounded.Wifi as ImageVector),
+        Triple("apps", "App inventory", Icons.Rounded.Apps as ImageVector),
+        Triple("identity", "Identity exposure", Icons.Rounded.Person as ImageVector),
+        Triple("timeline", "Incident timeline", Icons.Rounded.History as ImageVector),
     )
-    links.forEach { (route, label) ->
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 3.dp),
-            shape = MaterialTheme.shapes.small,
-            color = MaterialTheme.colorScheme.surface,
-            onClick = { onOpenSection(route) },
+    links.forEach { (route, label, icon) ->
+        GlassCard(
+            title = label,
+            icon = icon,
+            iconDescription = label,
+            modifier = Modifier.padding(vertical = 3.dp),
         ) {
-            Text(
-                label,
-                style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.padding(12.dp),
-            )
+            GlassPrimaryButton(label = "Open", onClick = { onOpenSection(route) })
         }
     }
 }

@@ -1,24 +1,22 @@
 package app.selvard.ui.home
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.selvard.SelvardApplication
 import app.selvard.link.LinkEventRecorder
+import app.selvard.ui.glass.GlassCard
+import app.selvard.ui.glass.GlassHero
 import app.selvard.ui.link.LinkCheckContent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -33,34 +31,35 @@ fun SecurityView() {
     val app = context.applicationContext as SelvardApplication
     val scope = rememberCoroutineScope()
 
-    Column(
+    androidx.compose.foundation.layout.Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
     ) {
-        Text(
-            "Check a link",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.semantics { heading() },
+        GlassHero(
+            icon = Icons.Rounded.Shield,
+            iconDescription = "Link check",
+            title = "Check a link",
+            subtitle = "Paste a URL. Analysis runs on this device.",
         )
-        Text(
-            "Paste a URL. Analysis runs on this device.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 4.dp, bottom = 12.dp),
-        )
-        SecurityLinkCheck(
-            app = app,
-            onAnalyzed = { url, verdict ->
-                val event = LinkEventRecorder.toEvent(url, verdict, System.currentTimeMillis())
-                scope.launch(Dispatchers.IO) {
-                    app.eventBus.publish(event)
-                    app.eventStore.append(event)
-                }
-            },
-        )
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(12.dp))
+        GlassCard(
+            title = "Link analysis",
+            icon = Icons.Rounded.Search,
+            iconDescription = "Link analysis",
+        ) {
+            SecurityLinkCheck(
+                app = app,
+                onAnalyzed = { url, verdict ->
+                    val event = LinkEventRecorder.toEvent(url, verdict, System.currentTimeMillis())
+                    scope.launch(Dispatchers.IO) {
+                        app.eventBus.publish(event)
+                        app.eventStore.append(event)
+                    }
+                },
+            )
+        }
+        Spacer(Modifier.height(12.dp))
         PostureView()
     }
 }
