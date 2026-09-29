@@ -36,7 +36,7 @@ import app.selvard.ui.theme.SelvardTheme
  * [rememberSaveable] on the route (never ordinals).
  */
 @Composable
-fun SelvardNav() {
+fun SelvardNav(onReplayIntro: (() -> Unit)? = null) {
     SelvardTheme {
         Surface(modifier = Modifier.fillMaxSize()) {
             var route by rememberSaveable { mutableStateOf(AppSection.HOME.route) }
@@ -48,7 +48,11 @@ fun SelvardNav() {
             ) {
                 FoundationBanner(modifier = Modifier.padding(top = 16.dp))
                 Column(modifier = Modifier.weight(1f)) {
-                    SectionContent(route = route, onOpenSection = { route = it })
+                    SectionContent(
+                        route = route,
+                        onOpenSection = { route = it },
+                        onReplayIntro = onReplayIntro,
+                    )
                 }
                 NavigationBar {
                     AppSection.entries.forEach { section ->
@@ -75,15 +79,20 @@ fun SelvardNav() {
 }
 
 @Composable
-private fun SectionContent(route: String, onOpenSection: (String) -> Unit) {
+private fun SectionContent(
+    route: String,
+    onOpenSection: (String) -> Unit,
+    onReplayIntro: (() -> Unit)? = null,
+) {
     when (route) {
-        AppSection.HOME.route -> HomeView(onOpenSection = onOpenSection)
+        AppSection.HOME.route -> HomeView(onOpenSection = onOpenSection, onReplayIntro = onReplayIntro)
         AppSection.SECURITY.route -> SecurityView()
         AppSection.NETWORK.route -> NetworkTabWrap()
         AppSection.APPS.route -> AppGuardianView()
         AppSection.IDENTITY.route -> IdentityExposureView()
         AppSection.TIMELINE.route -> IncidentTimelineView()
         AppSection.SETTINGS.route -> SettingsView()
-        else -> HomeView(onOpenSection = onOpenSection)
+        else -> HomeView(onOpenSection = onOpenSection, onReplayIntro = onReplayIntro)
     }
 }
+
