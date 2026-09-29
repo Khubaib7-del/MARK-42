@@ -3,7 +3,6 @@ package app.selvard.ui
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,7 +10,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Apps
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -28,7 +28,11 @@ import app.selvard.SelvardApplication
 import app.selvard.appguard.PackageInventoryScanner
 import app.selvard.appguard.AppGuardianEventRecorder
 import app.selvard.core.domain.appguard.AppAnalysis
-import app.selvard.core.domain.appguard.AppRiskBand
+import app.selvard.ui.glass.Glass
+import app.selvard.ui.glass.GlassCard
+import app.selvard.ui.glass.GlassHelperText
+import app.selvard.ui.glass.GlassHero
+import app.selvard.ui.glass.GlassPrimaryButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -48,71 +52,63 @@ fun AppGuardianView() {
     var scanError by remember { mutableStateOf<String?>(null) }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        Text(
-            "App Guardian",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.SemiBold,
+        GlassHero(
+            icon = Icons.Rounded.Apps,
+            iconDescription = "App inventory",
+            title = "App Guardian",
+            subtitle = "Requested permissions are manifest facts. Grant state is not read and not " +
+                "claimed. No result is a malware verdict.",
         )
-        Text(
-            "Requested permissions are manifest facts. Grant state is not read and not claimed. " +
-                "No result is a malware verdict.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 4.dp, bottom = 12.dp),
-        )
-        Button(
-            onClick = {
-                scanning = true
-                scanError = null
-                scope.launch {
-                    val result = runCatching {
-                        val facts = withContext(Dispatchers.IO) {
-                            PackageInventoryScanner.from(context).scan()
+        Spacer(Modifier.height(12.dp))
+        GlassCard(
+            title = "Inventory scan",
+            actionLabel = if (scanning) "Scanning…" else "Scan installed apps",
+            onAction = {
+                if (!scanning) {
+                    scanning = true
+                    scanError = null
+                    scope.launch {
+                        val result = runCatching {
+                            val facts = withContext(Dispatchers.IO) {
+                                PackageInventoryScanner.from(context).scan()
+                            }
+                            facts.map { app.appGuardian.analyze(it) }
+                                .sortedByDescending { it.score }
                         }
-                        facts.map { app.appGuardian.analyze(it) }
-                            .sortedByDescending { it.score }
+                        result
+                            .onSuccess { results ->
+                                // Show results first; audit recording must never
+                                // block or clear them.
+                                analyses = results
+                                AppGuardianEventRecorder.record(app, results)
+                            }
+                            .onFailure { failure ->
+                                scanError = "Scan failed: ${failure.message ?: "unknown error"}. " +
+                                    "Nothing was recorded; please retry."
+                            }
+                        scanning = false
                     }
-                    result
-                        .onSuccess { results ->
-                            // Show results first; audit recording must never
-                            // block or clear them.
-                            analyses = results
-                            AppGuardianEventRecorder.record(app, results)
-                        }
-                        .onFailure { failure ->
-                            scanError = "Scan failed: ${failure.message ?: "unknown error"}. " +
-                                "Nothing was recorded; please retry."
-                        }
-                    scanning = false
                 }
             },
-            enabled = !scanning,
-        ) { Text(if (scanning) "Scanning…" else "Scan installed apps") }
-        Spacer(Modifier.height(12.dp))
-        scanError?.let { error ->
-            Text(
-                error,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(bottom = 8.dp),
-            )
-        }
-        val list = analyses
-        if (list == null) {
-            Text(
-                "Nothing scanned yet — nothing is being monitored in the background.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        } else {
-            Text(
-                "${list.size} apps analyzed — highest capability score first",
-                style = MaterialTheme.typography.labelLarge,
-                modifier = Modifier.padding(bottom = 8.dp),
-            )
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                items(list) { analysis ->
-                    AppRow(analysis) { selected = analysis }
+        ) {
+            scanError?.let { GlassHelperText(it, error = true) }
+            val list = analyses
+            if (list == null) {
+                Text(
+                    "Nothing scanned yet — nothing is being monitored in the background.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else {
+                Text(
+                    "${list.size} apps analyzed — highest capability score first",
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.padding(bottom = 8.dp),
+                )
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(list) { analysis ->
+                        AppRow(analysis) { selected = analysis }
+                    }
                 }
             }
         }
@@ -125,46 +121,26 @@ fun AppGuardianView() {
 
 @Composable
 private fun AppRow(analysis: AppAnalysis, onClick: () -> Unit) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
-        shape = MaterialTheme.shapes.small,
-        color = if (analysis.band == AppRiskBand.CRITICAL || analysis.band == AppRiskBand.HIGH) {
-            MaterialTheme.colorScheme.surfaceVariant
-        } else {
-            MaterialTheme.colorScheme.surface
-        },
-    ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Column(modifier = Modifier.padding(end = 8.dp)) {
-                Text(analysis.packageName, style = MaterialTheme.typography.bodyMedium)
-                Text(
-                    "${analysis.findings.size} finding(s)",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            Text(
-                "${analysis.band.name.lowercase()} · ${analysis.score}",
-                style = MaterialTheme.typography.labelLarge,
-                color = if (analysis.band == AppRiskBand.CRITICAL || analysis.band == AppRiskBand.HIGH) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
-            )
-        }
-    }
+    GlassStatusRowFor(analysis, onClick)
+}
+
+@Composable
+private fun GlassStatusRowFor(analysis: AppAnalysis, onClick: () -> Unit) {
+    // Band stays a word; the tonal wash is identical for every row.
+    app.selvard.ui.glass.GlassStatusRow(
+        icon = Icons.Rounded.Apps,
+        iconDescription = "App result",
+        headline = analysis.packageName,
+        detail = "${analysis.band.name.lowercase()} · score ${analysis.score} · " +
+            "${analysis.findings.size} finding(s). Tap for evidence.",
+        modifier = Modifier.clickable { onClick() },
+    )
 }
 
 @Composable
 private fun AppDetailDialog(analysis: AppAnalysis, onDismiss: () -> Unit) {
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
-        Surface(shape = MaterialTheme.shapes.large) {
+        Surface(shape = Glass.SheetShape) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

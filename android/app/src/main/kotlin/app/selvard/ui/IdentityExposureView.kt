@@ -9,11 +9,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,7 +34,16 @@ import app.selvard.core.domain.identity.IdentityKind
 import app.selvard.identity.CheckOutcome
 import app.selvard.identity.HibpClient
 import app.selvard.identity.IdentityCheckEngine
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Refresh
 import app.selvard.identity.VaultEntry
+import app.selvard.ui.glass.GlassCard
+import app.selvard.ui.glass.GlassHelperText
+import app.selvard.ui.glass.GlassHero
+import app.selvard.ui.glass.GlassPrimaryButton
+import app.selvard.ui.glass.GlassSectionActions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -91,16 +98,21 @@ private fun IdentityExposureContent(form: IdentityFormState) {
     )
 
     Column(modifier = Modifier.fillMaxSize()) {
-        Text("Identity Exposure", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
-        Text(
-            "Declare an address to check it against Have I Been Pwned breach intelligence, with your " +
+        GlassHero(
+            icon = Icons.Rounded.Person,
+            iconDescription = "Identity check",
+            title = "Identity Exposure",
+            subtitle = "Declare an address to check it against Have I Been Pwned breach intelligence, with your " +
                 "explicit consent. Preferred mode sends only 6 hash characters; the full address never " +
                 "leaves the device. HIBP's index may be incomplete: no match never means safe.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 4.dp, bottom = 12.dp),
         )
-        IdentityFormSection(
+        Spacer(Modifier.height(12.dp))
+        GlassCard(
+            title = "Declare an address",
+            icon = Icons.Rounded.Person,
+            iconDescription = "Declare an address",
+        ) {
+            IdentityFormSection(
             form = form,
             onError = { formError = it },
             onDeclared = { declared ->
@@ -122,16 +134,11 @@ private fun IdentityExposureContent(form: IdentityFormState) {
                 }
             },
         )
-        formError?.let {
-            Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
         }
+        formError?.let { GlassHelperText(it, error = true) }
         Spacer(Modifier.height(12.dp))
-        loadError?.let {
-            Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
-        }
-        checkError?.let {
-            Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
-        }
+        loadError?.let { GlassHelperText(it, error = true) }
+        checkError?.let { GlassHelperText(it, error = true) }
         IdentityVaultList(
             entries = entries,
             outcomes = outcomes,
@@ -223,7 +230,8 @@ private fun IdentityFormSection(
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
     Spacer(Modifier.height(8.dp))
-    Button(
+    GlassPrimaryButton(
+        label = "Save with consent and check now",
         onClick = {
             scope.launch {
                 val mode = if (form.fullMode) HibpQueryMode.FULL_ADDRESS else HibpQueryMode.K_ANONYMITY_RANGE
@@ -266,7 +274,7 @@ private fun IdentityFormSection(
                 onDeclared(declared)
             }
         },
-    ) { Text("Save with consent and check now") }
+    )
 }
 
 @Composable
@@ -296,17 +304,13 @@ private fun IdentityVaultList(
     }
     LazyColumn {
         items(list, key = { it.identityId }) { entry ->
-            Surface(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                shape = MaterialTheme.shapes.medium,
-                color = MaterialTheme.colorScheme.surfaceVariant,
+            GlassCard(
+                title = IdentityExposure.maskEmail(entry.normalized),
+                icon = Icons.Rounded.Person,
+                iconDescription = "Declared address",
+                modifier = Modifier.padding(vertical = 4.dp),
             ) {
-                Column(modifier = Modifier.padding(12.dp)) {
-                    Text(
-                        IdentityExposure.maskEmail(entry.normalized),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
-                    )
+                Column {
                     Text(
                         "Mode: " + if (entry.mode == "FULL_ADDRESS") "full address" else "6-char hash prefix",
                         style = MaterialTheme.typography.bodySmall,
@@ -340,11 +344,10 @@ private fun IdentityVaultList(
                         )
                     }
                     Spacer(Modifier.height(8.dp))
-                    Row {
+                    GlassSectionActions {
                         OutlinedButton(onClick = { onRecheck(entry) }, enabled = checkingId == null) {
                             Text(if (checkingId == entry.identityId) "Checking…" else "Check now")
                         }
-                        Spacer(Modifier.padding(horizontal = 4.dp))
                         OutlinedButton(onClick = { onDelete(entry) }) { Text("Delete") }
                     }
                 }
@@ -352,3 +355,4 @@ private fun IdentityVaultList(
         }
     }
 }
+
