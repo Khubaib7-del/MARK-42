@@ -1,6 +1,6 @@
 package app.selvard.ui
 
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -8,9 +8,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.History
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,6 +29,10 @@ import app.selvard.core.domain.incident.CausalLanguage
 import app.selvard.core.domain.incident.CorrelationEngine
 import app.selvard.core.domain.incident.CorrelationResult
 import app.selvard.core.domain.incident.Incident
+import app.selvard.ui.glass.GlassCard
+import app.selvard.ui.glass.GlassHelperText
+import app.selvard.ui.glass.GlassHero
+import app.selvard.ui.glass.GlassStatusRow
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -53,50 +57,50 @@ fun IncidentTimelineView() {
     var loadError by remember { mutableStateOf<String?>(null) }
     var selected by remember { mutableStateOf<Incident?>(null) }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Text(
-            "Incident Timeline",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.SemiBold,
-        )
-        Text(
-            "Related signals grouped by entity and time window (30 minutes). " +
+    androidx.compose.foundation.layout.Column(modifier = Modifier.fillMaxSize()) {
+        GlassHero(
+            icon = Icons.Rounded.History,
+            iconDescription = "Incident timeline",
+            title = "Incident Timeline",
+            subtitle = "Related signals grouped by entity and time window (30 minutes). " +
                 "Grouping is temporal proximity only — no link between signals is " +
                 "claimed. Singles that match nothing are listed separately.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 4.dp, bottom = 12.dp),
         )
-        Button(
-            onClick = {
-                analyzing = true
-                loadError = null
-                scope.launch {
-                    runCatching {
-                        withContext(Dispatchers.IO) {
-                            app.eventStore.query(EventQuery(limit = EventQuery.MAX_LIMIT))
+        Spacer(Modifier.height(12.dp))
+        GlassCard(
+            title = "Correlation",
+            icon = Icons.Rounded.History,
+            iconDescription = "Correlation",
+            actionLabel = if (analyzing) "Analyzing…" else "Analyze recorded events",
+            onAction = {
+                if (!analyzing) {
+                    analyzing = true
+                    loadError = null
+                    scope.launch {
+                        runCatching {
+                            withContext(Dispatchers.IO) {
+                                app.eventStore.query(EventQuery(limit = EventQuery.MAX_LIMIT))
+                            }
+                        }.onSuccess { events ->
+                            result = CorrelationEngine.correlate(events)
+                            eventsById = events.associateBy { it.eventId }
+                        }.onFailure {
+                            loadError = "Timeline unavailable: ${it.message ?: "unknown error"}"
                         }
-                    }.onSuccess { events ->
-                        result = CorrelationEngine.correlate(events)
-                        eventsById = events.associateBy { it.eventId }
-                    }.onFailure {
-                        loadError = "Timeline unavailable: ${it.message ?: "unknown error"}"
+                        analyzing = false
                     }
-                    analyzing = false
                 }
             },
-            enabled = !analyzing,
-        ) { Text(if (analyzing) "Analyzing…" else "Analyze recorded events") }
-        Spacer(Modifier.height(12.dp))
-        loadError?.let {
-            Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+        ) {
+            loadError?.let { GlassHelperText(it, error = true) }
+            Spacer(Modifier.height(4.dp))
+            IncidentTimelineContent(
+                result = result,
+                eventsById = eventsById,
+                selected = selected,
+                onSelect = { selected = it },
+            )
         }
-        IncidentTimelineContent(
-            result = result,
-            eventsById = eventsById,
-            selected = selected,
-            onSelect = { selected = it },
-        )
     }
 }
 
@@ -140,17 +144,13 @@ private fun IncidentTimelineContent(
             }
             items(result.uncorrelatedEventIds, key = { "single-$it" }) { id ->
                 val event = eventsById[id]
-                Surface(
+                GlassStatusRow(
+                    icon = Icons.Rounded.History,
+                    iconDescription = "Single signal",
+                    headline = "Single signal",
+                    detail = singleLine(event),
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                    shape = MaterialTheme.shapes.medium,
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                ) {
-                    Text(
-                        singleLine(event),
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(12.dp),
-                    )
-                }
+                )
             }
         }
     }
@@ -165,18 +165,11 @@ private fun IncidentCard(
 ) {
     // Rendered copy is fixed temporal language; verified by CausalLanguageTest below.
     CausalLanguage.check("occurred shortly after")
-    Surface(
+    GlassCard(
+        title = "${incident.eventCount} related signals · ${incident.maxSeverity}",
         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        onClick = onToggle,
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(
-                "${incident.eventCount} related signals · ${incident.maxSeverity}",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-            )
+        androidx.compose.foundation.layout.Column {
             Text(
                 incident.summaryLine(),
                 style = MaterialTheme.typography.bodySmall,
@@ -204,6 +197,11 @@ private fun IncidentCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+            Spacer(Modifier.height(8.dp))
+            androidx.compose.material3.TextButton(
+                onClick = onToggle,
+                modifier = Modifier.clickable { onToggle() },
+            ) { Text(if (expanded) "Collapse" else "Expand") }
         }
     }
 }

@@ -19,6 +19,8 @@
 
 [**⬇️ Download Latest APK**](#-download--sideload-guide) • [**✨ Key Features**](#-core-guardians) • [**⚠️ Download & Install Help**](#-install-help--troubleshooting) • [**🤝 Contributing**](CONTRIBUTING.md) • [**📜 Code of Conduct**](CODE_OF_CONDUCT.md)
 
+[**Download `selvard-v0.9.0-ui-refresh.apk` (v0.9.0, UI refresh)**](https://github.com/Khubaib7-del/MARK-42/releases/download/v0.9.0-ui-refresh/selvard-v0.9.0-ui-refresh.apk) — sideload on any Android 8.0+ device. Friendlier, non-technical refresh of the same app: big rounded home cards, one clear button per card, cute curvy tab icons, and plain words everywhere — verdicts and posture still stated in words, never color or jargon. Every screen keeps its engine, consent flow, and honesty limits; only the presentation changed. **Includes the v0.1.1 scan-crash fix.** Debug-signed for testing; the release notes list every honest limit of this build.
+
 </div>
 
 ---
