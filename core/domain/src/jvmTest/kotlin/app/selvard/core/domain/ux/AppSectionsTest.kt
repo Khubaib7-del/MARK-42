@@ -39,4 +39,14 @@ class AppSectionsTest {
             )
         }
     }
+
+    @Test
+    fun everySectionHasAKnownRoundedIconKey() {
+        val known = setOf("home", "shield", "wifi", "apps", "person", "history", "settings")
+        AppSection.entries.forEach { section ->
+            assertTrue(section.iconKey in known, "${section.route} has unknown icon key ${section.iconKey}")
+        }
+        val keys = AppSection.entries.map { it.iconKey }
+        assertEquals(keys.size, keys.toSet().size, "tab icons must be distinct")
+    }
 }

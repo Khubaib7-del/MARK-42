@@ -7,10 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -20,7 +17,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.selvard.SelvardApplication
 import app.selvard.core.domain.event.EventCategory
@@ -31,8 +27,14 @@ import app.selvard.core.domain.integrity.PlayIntegrityState
 import app.selvard.core.domain.privacy.PermissionSnapshot
 import app.selvard.core.domain.privacy.PrivacyCoverage
 import app.selvard.core.domain.privacy.diffSnapshots
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.Lock
 import app.selvard.integrity.AndroidIntegritySource
 import app.selvard.privacy.PrivacyEventRecorder
+import app.selvard.ui.glass.GlassCard
+import app.selvard.ui.glass.GlassHelperText
+import app.selvard.ui.glass.GlassHero
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -47,14 +49,14 @@ fun PrivacyMonitorView() {
     val context = LocalContext.current
     val app = context.applicationContext as SelvardApplication
     Column(modifier = Modifier.fillMaxSize()) {
-        Text("Privacy Monitor", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
-        Text(
-            "Observable privacy facts. Selvard records installs, permission snapshots and boots " +
+        GlassHero(
+            icon = Icons.Rounded.Lock,
+            iconDescription = "Privacy facts",
+            title = "Privacy Monitor",
+            subtitle = "Observable privacy facts. Selvard records installs, permission snapshots and boots " +
                 "while installed; everything it cannot see is labeled, with the reason.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 4.dp, bottom = 12.dp),
         )
+        Spacer(Modifier.height(12.dp))
         CoverageList()
         Spacer(Modifier.height(12.dp))
         SnapshotSection(app)
@@ -66,26 +68,23 @@ fun PrivacyMonitorView() {
 @Composable
 private fun CoverageList() {
     PrivacyCoverage.entries.forEach { entry ->
-        Surface(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
-            shape = MaterialTheme.shapes.small,
-            color = MaterialTheme.colorScheme.surface,
+        GlassCard(
+            title = entry.area.title,
+            icon = Icons.Rounded.Info,
+            iconDescription = entry.area.title,
+            modifier = Modifier.padding(vertical = 3.dp),
         ) {
-            Column(modifier = Modifier.padding(12.dp)) {
-                Text(entry.area.title, style = MaterialTheme.typography.titleSmall)
-                Text(
-                    stateLabel(entry.state, entry.coveredBy),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = stateColor(entry),
-                    modifier = Modifier.padding(top = 2.dp),
-                )
-                Text(
-                    entry.note,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 2.dp),
-                )
-            }
+            Text(
+                stateLabel(entry.state, entry.coveredBy),
+                style = MaterialTheme.typography.labelMedium,
+                color = stateColor(entry),
+            )
+            Text(
+                entry.note,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 2.dp),
+            )
         }
     }
 }
@@ -98,53 +97,49 @@ private fun SnapshotSection(app: SelvardApplication) {
     var scanning by remember { mutableStateOf(false) }
     var snapshotError by remember { mutableStateOf<String?>(null) }
 
-    Text("Permission snapshots", style = MaterialTheme.typography.titleMedium)
-    Text(
-        "Compares requested permissions between two snapshots. Runtime grant state is excluded by platform design; " +
-            "snapshots cover the main profile only (Private Space apps are invisible to queries).",
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(top = 2.dp, bottom = 8.dp),
-    )
-    Button(
-        onClick = {
-            scanning = true
-            snapshotError = null
-            scope.launch {
-                // Snapshots are computed off the main thread; failures render, never crash.
-                val result = runCatching {
-                    withContext(Dispatchers.IO) { PrivacyEventRecorder.currentSnapshot(app) }
-                }
-                result
-                    .onSuccess { current ->
-                        // Render first; recording is best-effort.
-                        deltaLine = if (previous == null) {
-                            "${current.entries.size} package(s) captured as baseline; next scan compares against it."
-                        } else {
-                            diffSnapshots(previous, current).summaryLine()
+    GlassCard(
+        title = "Permission snapshots",
+        actionLabel = if (scanning) "Snapshotting…" else if (previous == null) "Capture baseline" else "Compare now",
+        onAction = {
+            if (!scanning) {
+                scanning = true
+                snapshotError = null
+                scope.launch {
+                    // Snapshots are computed off the main thread; failures render, never crash.
+                    val result = runCatching {
+                        withContext(Dispatchers.IO) { PrivacyEventRecorder.currentSnapshot(app) }
+                    }
+                    result
+                        .onSuccess { current ->
+                            // Render first; recording is best-effort.
+                            deltaLine = if (previous == null) {
+                                "${current.entries.size} package(s) captured as baseline; next scan compares against it."
+                            } else {
+                                diffSnapshots(previous, current).summaryLine()
+                            }
+                            val diff = previous?.let { diffSnapshots(it, current) }
+                            previous = current
+                            if (diff != null) PrivacyEventRecorder.recordSnapshotDiff(app, diff)
                         }
-                        val diff = previous?.let { diffSnapshots(it, current) }
-                        previous = current
-                        if (diff != null) PrivacyEventRecorder.recordSnapshotDiff(app, diff)
-                    }
-                    .onFailure { failure ->
-                        snapshotError = "Snapshot failed: ${failure.message ?: "unknown error"}. Nothing recorded."
-                    }
-                scanning = false
+                        .onFailure { failure ->
+                            snapshotError = "Snapshot failed: ${failure.message ?: "unknown error"}. Nothing recorded."
+                        }
+                    scanning = false
+                }
             }
         },
-        enabled = !scanning,
-    ) { Text(if (scanning) "Snapshotting…" else if (previous == null) "Capture baseline" else "Compare now") }
-    deltaLine?.let {
-        Text(it, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 8.dp))
-    }
-    snapshotError?.let {
+    ) {
         Text(
-            it,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.error,
-            modifier = Modifier.padding(top = 8.dp),
+            "Compares requested permissions between two snapshots. Runtime grant state is excluded by platform design; " +
+                "snapshots cover the main profile only (Private Space apps are invisible to queries).",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 8.dp),
         )
+        deltaLine?.let {
+            Text(it, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 8.dp))
+        }
+        snapshotError?.let { GlassHelperText(it, error = true) }
     }
 }
 
@@ -170,17 +165,10 @@ private fun IntegritySection(context: android.content.Context, app: SelvardAppli
         ) as DeviceIntegritySource
     }
 
-    Text("Device integrity", style = MaterialTheme.typography.titleMedium)
-    Text(
-        "Locally observed facts: published patch level and its age, verified-boot state where readable, " +
-            "and boots Selvard itself recorded. Play Integrity verdicts need a Play-distributed build plus " +
-            "backend verification (tracked to Phase 12) and are not claimed here.",
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(top = 2.dp, bottom = 8.dp),
-    )
-    OutlinedButton(
-        onClick = {
+    GlassCard(
+        title = "Device integrity",
+        actionLabel = "Read integrity signals",
+        onAction = {
             scope.launch {
                 val snap = runCatching { withContext(Dispatchers.IO) { source.integritySnapshot() } }
                 snap.onSuccess { integrity = it }.onFailure {
@@ -188,17 +176,19 @@ private fun IntegritySection(context: android.content.Context, app: SelvardAppli
                 }
             }
         },
-    ) { Text("Read integrity signals") }
-    integrity?.let { snap ->
-        IntegrityResult(snap)
-    }
-    integrityError?.let {
+    ) {
         Text(
-            it,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.error,
-            modifier = Modifier.padding(top = 8.dp),
+            "Locally observed facts: published patch level and its age, verified-boot state where readable, " +
+                "and boots Selvard itself recorded. Play Integrity verdicts need a Play-distributed build plus " +
+                "backend verification (tracked to Phase 12) and are not claimed here.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 8.dp),
         )
+        integrity?.let { snap ->
+            IntegrityResult(snap)
+        }
+        integrityError?.let { GlassHelperText(it, error = true) }
     }
 }
 

@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -19,9 +18,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.Search
 import app.selvard.core.domain.link.LinkGuardian
 import app.selvard.core.domain.link.LinkVerdict
 import app.selvard.core.domain.link.LinkVerdictState
+import app.selvard.ui.glass.GlassCard
+import app.selvard.ui.glass.GlassHelperText
+import app.selvard.ui.glass.GlassPrimaryButton
+import app.selvard.ui.glass.GlassStatusRow
 
 /** Single evidence-first verdict implementation (share target + Security tab). */
 @Composable
@@ -41,14 +47,15 @@ fun LinkCheckContent(
             singleLine = true,
         )
         Spacer(Modifier.height(12.dp))
-        Button(
+        GlassPrimaryButton(
+            label = "Analyze",
+            enabled = input.isNotBlank(),
             onClick = {
                 val result = guardian.analyze(input)
                 verdict = result
                 onAnalyzed(input, result)
             },
-            enabled = input.isNotBlank(),
-        ) { Text("Analyze") }
+        )
         Spacer(Modifier.height(24.dp))
         verdict?.let { VerdictCard(it) }
     }
@@ -63,40 +70,45 @@ private fun VerdictCard(verdict: LinkVerdict) {
         LinkVerdictState.BLOCK -> "BLOCKED — high-risk"
         LinkVerdictState.UNKNOWN -> "UNKNOWN — limited analysis"
     }
-    Column {
-        Text(label, style = MaterialTheme.typography.titleLarge)
+    GlassCard(
+        title = label,
+        icon = Icons.Rounded.Search,
+        iconDescription = "Verdict",
+    ) {
+        androidx.compose.foundation.layout.Column {
         Text(
             "Confidence: ${verdict.confidence.name.lowercase()}",
             style = MaterialTheme.typography.labelLarge,
             modifier = Modifier.padding(top = 2.dp),
         )
         Spacer(Modifier.height(12.dp))
-        Text("Why", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-        verdict.reasons.forEach { reason ->
-            Text(
-                reason,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(vertical = 3.dp),
-            )
-        }
-        if (verdict.findings.isNotEmpty()) {
-            Spacer(Modifier.height(12.dp))
-            Text("Evidence", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            verdict.findings.forEach { finding ->
-                Row(Modifier.padding(vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        finding.kind,
-                        style = MaterialTheme.typography.labelMedium,
+            Text("Why", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            verdict.reasons.forEach { reason ->
+                Text(
+                    reason,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(vertical = 3.dp),
+                )
+            }
+            if (verdict.findings.isNotEmpty()) {
+                Spacer(Modifier.height(12.dp))
+                Text("Evidence", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                verdict.findings.forEach { finding ->
+                    GlassStatusRow(
+                        icon = Icons.Rounded.Info,
+                        iconDescription = finding.kind,
+                        headline = finding.kind,
+                        detail = finding.detail,
+                        modifier = Modifier.padding(vertical = 4.dp),
                     )
-                    Text(finding.detail, style = MaterialTheme.typography.bodyMedium)
                 }
             }
+            Spacer(Modifier.height(12.dp))
+            Text(
+                "Source: ${verdict.findings.firstOrNull()?.provenance ?: "local heuristics only"}",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
-        Spacer(Modifier.height(12.dp))
-        Text(
-            "Source: ${verdict.findings.firstOrNull()?.provenance ?: "local heuristics only"}",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
     }
 }
