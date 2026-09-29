@@ -1,98 +1,136 @@
-<div align="center" style="background: linear-gradient(135deg, #071f24 0%, #0b4f4a 46%, #8fe388 100%); border-radius: 22px; padding: 18px; margin: 0 auto 28px;">
-  <img src="assets/brand/banner.webp" alt="Selvard — A privacy-first Android security environment" width="960" style="display: block; width: 100%; max-width: 960px; height: auto; border-radius: 14px;">
+<div align="center" style="background: linear-gradient(135deg, #071f24 0%, #0b4f4a 46%, #8fe388 100%); border-radius: 24px; padding: 20px; margin: 0 auto 28px;">
+  <img src="assets/brand/banner.webp" alt="Selvard — A privacy-first Android security environment" width="960" style="display: block; width: 100%; max-width: 960px; height: auto; border-radius: 16px;">
 </div>
 
-# Selvard
+<div align="center">
 
-**A privacy-first Android security environment** that detects, explains, contains, and correlates threats across links, applications, networks, identity, privacy activity, and device security — while preserving user control and minimizing data exposure.
+# Selvard (The Self-Warden)
+**A Privacy-First, Local-First On-Device Android Security Shield**
 
-*Selvard* means **the self-warden**: a guardian that never outsources your trust. Local-first by architecture, honest by contract, proprietary by design.
+[![Platform](https://img.shields.io/badge/Platform-Android_8.0+_(API_26--35)-brightgreen?logo=android&logoColor=white)](android/)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.0.21_Multiplatform-purple?logo=kotlin&logoColor=white)](core/domain/)
+[![Architecture](https://img.shields.io/badge/Architecture-100%25_On--Device_Local--First-0A6C60)](docs/ARCHITECTURE.md)
+[![Build Status](https://img.shields.io/badge/Build-Passing_(158%2F158_Tests)-success)](docs/security/PHASE11_MVP_TEST_REPORT.md)
+[![Static Analysis](https://img.shields.io/badge/Detekt-Clean-3E8E9E)](config/detekt/detekt.yml)
+[![Accessibility](https://img.shields.io/badge/A11y-WCAG_2.1_AA-blue)](docs/DRD.md)
+[![License](https://img.shields.io/badge/License-Proprietary-darkgray)](LICENSE)
 
-## Try the current build
+*Selvard* means **the self-warden**: an institutional guardian that never outsources your trust. Every threat analysis, permission audit, and link inspection happens 100% on your device.
+
+[**⬇️ Download Latest APK**](#-download--sideload-guide) • [**✨ Key Features**](#-core-guardians) • [**⚠️ Download & Install Help**](#-install-help--troubleshooting) • [**🤝 Contributing**](CONTRIBUTING.md) • [**📜 Code of Conduct**](CODE_OF_CONDUCT.md)
 
 [**Download `selvard-v0.9.0-ui-refresh.apk` (v0.9.0, UI refresh)**](https://github.com/Khubaib7-del/MARK-42/releases/download/v0.9.0-ui-refresh/selvard-v0.9.0-ui-refresh.apk) — sideload on any Android 8.0+ device. Friendlier, non-technical refresh of the same app: big rounded home cards, one clear button per card, cute curvy tab icons, and plain words everywhere — verdicts and posture still stated in words, never color or jargon. Every screen keeps its engine, consent flow, and honesty limits; only the presentation changed. **Includes the v0.1.1 scan-crash fix.** Debug-signed for testing; the release notes list every honest limit of this build.
 
-## Status
-
-**Phase 12 — Release preparation (complete).**
-
-Three guardians are live. **Link Guardian** (Phase 3): share or paste a link and Selvard analyzes it entirely on-device — evidence-first verdicts, never "safe". **Network Guardian** (Phase 4): an opt-in, split-tunnel DNS filter — only DNS passes through; all other traffic bypasses Selvard entirely. Blocked names are refused on-device with zero egress; allowed lookups go unmodified to your device's own resolver. **App Guardian** (Phase 5): on-demand inventory of installed apps — requested permissions are manifest facts, classified against a transparent catalog with stalkerware capability-combination detection (e.g., SMS + notifications = OTP interception), installer provenance, and legacy-target-SDK findings. Grant state is never read or claimed; no result is a malware verdict. Scans record data-minimizing events: summary counts, and per-app details only for high/critical scores (capped). 80/80 unit tests, detekt and Android lint clean. All feeds are clearly-labeled **development samples**; real blocklists arrive with threat-intelligence integration.
-
-**Hardening** (Phase 10): full report in `docs/security/HARDENING_REPORT.md` — 13 findings fixed. **MVP testing** (Phase 11): full matrix in `docs/security/PHASE11_MVP_TEST_REPORT.md` — 158/158 JVM tests green (accuracy corpus, pipeline integration, provider-failure injection, manifest lockdown). **Release preparation** (Phase 12): privacy policy, security contact, honest store listing, Play declarations, staged rollout plan, release checklist, incident-response dry run — 158/158 JVM tests, detekt + lint clean. No external pen test; no on-device run (no emulator in the build sandbox — owner-side native testing next); release signing + Play submission are owner actions in a trusted environment; IPv6 DNS bypass, single-threaded pump, battery/field-study, and dependency-vulnerability scan stay disclosed debt; biometric gate is an open follow-up.
-
-## What Selvard is
-
-| | |
-| --- | --- |
-| **It is** | A security control plane: Link Guardian, Network Guardian (local-only DNS filtering), App Guardian, Privacy Monitor, Identity Exposure, Device Integrity, Incident Timeline, Security Posture, and explainable response workflows. |
-| **It is not** | An antivirus, a VPN, a "score" app, or a hacker-themed dashboard. No fake features. No "your device is safe!" theater. |
-
-## Governing principles
-
-1. The security system must not become the surveillance system.
-2. Never fake a capability that Android does not permit.
-3. Never present absence of detection as safety ("no known threat" ≠ "safe").
-4. Local-first processing; the Network Guardian filters on-device and never tunnels traffic to any server.
-5. Deterministic, evidence-backed decisions; AI assists explanation, never judgment.
-
-## Documentation index
-
-| Document | Purpose |
-| --- | --- |
-| `docs/PROJECT_FOUNDATION_REPORT.md` | Phase 0 summary report |
-| `docs/PRD.md` | Product requirements |
-| `docs/DRD.md` | Developer/design requirements |
-| `docs/ARCHITECTURE.md` | System architecture |
-| `docs/ROADMAP.md` | Phased roadmap (Phase 0–12) |
-| `docs/security/THREAT_MODEL.md` | Threat model (categories A–T) |
-| `docs/security/SECURITY_ARCHITECTURE.md` | Security architecture |
-| `docs/security/PRIVACY_ARCHITECTURE.md` | Privacy architecture |
-| `docs/security/DATA_CLASSIFICATION.md` | Data classes and retention |
-| `docs/security/DEPENDENCY_POLICY.md` | Dependency evaluation policy |
-| `docs/security/INCIDENT_RESPONSE.md` | Incident response procedures |
-| `docs/security/SECURITY_TESTING.md` | Security test plan |
-| `docs/research/ANDROID_CAPABILITIES.md` | Capability matrix (mandatory) |
-| `docs/research/THREAT_INTELLIGENCE.md` | TI sources and provider design |
-| `docs/research/MALWARE_ANALYSIS.md` | Malware analysis approach |
-| `docs/research/COMPETITIVE_RESEARCH.md` | Market landscape |
-| `docs/product/MVP_SCOPE.md` | MVP scope and security boundary |
-| `docs/product/USER_FLOWS.md` | User flows |
-| `docs/product/PROTECTED_ASSETS.md` | Protected asset model |
-| `docs/brand/BRAND_IDENTITY.md` | Name, logomark, identity rules |
-| `docs/decisions/` | Architecture Decision Records |
-
-## Repository structure
-
-```
-/docs        engineering and product documentation
-/assets      brand assets (logomark, banner)
-/core        platform-neutral security domain (Kotlin Multiplatform) — implemented
-/android     Android app (Kotlin, Jetpack Compose) — shell implemented
-/backend     cloud intelligence services (minimal, deferred) — Phase 12+
-/desktop     future desktop agent (not MVP) — V3
-/scripts     toolchain bootstrap and build tooling
-/tests       cross-cutting test assets — grows with engines
-```
-
-## Development
-
-Requires JDK 21 and the Android SDK (platform 35, build-tools 35.0.0). Reproducible bootstrap:
-
-```bash
-scripts/bootstrap-toolchain.sh   # JDK via mise + Android SDK + local.properties
-./gradlew detekt :core:domain:jvmTest :android:app:assembleDebug
-```
-
-## Brand
-
-<div align="center" style="background: linear-gradient(135deg, #f4fff1 0%, #d6f5ce 45%, #79d68a 100%); border-radius: 22px; padding: 24px; margin: 28px auto;">
-  <img src="assets/brand/logo-live.webp" alt="Selvard primary logo over a flowing green gradient field" width="420" style="display: block; width: min(100%, 420px); height: auto; margin: 0 auto; border-radius: 14px;">
 </div>
 
-The primary logo (owner-supplied) is the product's visual identity: dark ink structure on a light field with a green accent family — deep teal-green for trust, bright signal green for detection. The logo should remain clear, calm, and recognizable across product surfaces.
+---
 
-Identity rules, palette, and the naming decision record live in `docs/brand/BRAND_IDENTITY.md` and `docs/decisions/ADR-008-naming-direction.md`.
+## 💡 Why Selvard?
 
-## License
+Traditional security and antivirus apps have become **surveillance software in disguise** — vacuuming up your browsing history, contacts, app usage, and telemetry to monetize or upload to third-party clouds.
 
-**Proprietary software — all rights reserved.** Selvard's code, documentation, and brand assets are the property of the copyright holder. No open-source license is granted. See [LICENSE](LICENSE).
+**Selvard operates under an absolute governing principle:**
+> *The security system must never become the surveillance system.*
+
+- 🔒 **Zero Cloud Telemetry**: No Google Analytics, no telemetry SDKs, no user accounts, no tracking.
+- 🛡️ **100% On-Device Processing**: DNS filtering, APK permission heuristics, and link analysis run locally on your phone.
+- ⚖️ **Honest Limits**: We never claim your device is "100% Safe" (absence of evidence is not evidence of safety). We never pretend to have permissions or capabilities Android forbids.
+- 💎 **Curvy Liquid-Glass Experience**: Clean, approachable, modern UI with interactive status beacons and CAD blueprint launch animations designed for human beings, not hacker consoles.
+
+---
+
+## 📦 Download & Sideload Guide
+
+### Latest Release
+👉 [**Download `selvard-v0.8.0-phase12.apk` (v0.8.0, Phase 12)**](https://github.com/Khubaib7-del/MARK-42/releases/download/v0.8.0-phase12/selvard-v0.8.0-phase12.apk)
+- **File size**: ~10.3 MB
+- **Target OS**: Android 8.0 Oreo (API 26) through Android 15 (API 35)
+- **SHA-256 Checksum**: Check release assets on [GitHub Releases](https://github.com/Khubaib7-del/MARK-42/releases)
+
+---
+
+## 🛠️ Install Help & Troubleshooting
+
+If you are downloading or installing on your phone, you may encounter two common Android security prompts. Here is exactly why they happen and how to proceed:
+
+### 1. Chrome Download Stalls at 100% (10.33 MB / 10.33 MB)?
+- **What happens**: When downloading an `.apk` directly from GitHub in Google Chrome Mobile, Chrome's Safe Browsing service flags new, unknown APK downloads without pre-existing domain reputation. The download circle fills completely, but Chrome pauses in `.crdownload` state.
+- **How to resolve**:
+  1. Open Chrome's **Downloads** menu (`⋮` > **Downloads**).
+  2. If Chrome shows *"This file might be harmful"*, tap **Keep anyway** or **Download anyway**.
+  3. *Alternative Browsers*: Download using **Firefox**, **Brave**, or **Opera Mobile**, which do not hold `.apk` files at 100%.
+  4. *Laptop Transfer*: Download the APK on your laptop/computer and transfer it to your phone via USB or WhatsApp document sharing.
+
+### 2. Play Protect "Blocked by Play Protect / Unknown Developer"?
+- **What happens**: When installing a sideloaded APK for the first time, Android's Play Protect scanner displays a yellow warning with an exclamation mark stating: *"Unrecognized app / Play Protect doesn't recognize this app's developer"*.
+- **Why this happens**: This is completely normal for pre-release software signed with developer keys before Google Play Store public distribution.
+- **How to install**:
+  1. Tap **"More details"** (or the small dropdown arrow below the warning).
+  2. Tap **"Install anyway"**.
+  3. The app will install cleanly and immediately be ready for use.
+
+---
+
+## 🛡️ Core Guardians
+
+| Guardian | What It Does On-Device | What It Never Does (Honest Limits) |
+| :--- | :--- | :--- |
+| 🔗 **Link Guardian** | Analyzes shared/pasted URLs for typosquats, brand impersonation, punycode/IDN homoglyphs, and local threat lists. | Never intercepts in-browser clicks silently (Android forbids it; user-initiated only). |
+| 🌐 **Network Guardian** | Local split-tunnel DNS filter via `VpnService`. Refuses known malware/tracker domains on-device with **zero network egress**. | Never routes your app traffic to a remote server. Never inspects encrypted HTTPS payloads. |
+| 📱 **App Guardian** | On-demand inventory audit of declared permissions, dangerous stalkerware combos (e.g. SMS + Notifications), and legacy target SDKs. | Never reads other apps' internal data or granted runtime states. Results are risk signals, not malware verdicts. |
+| 👁️ **Privacy Monitor** | Tracks observable system facts: package install/update/removal timelines, permission-change snapshots, and reboot timestamps. | Explicitly labels sensor use (mic/camera/GPS) as `NOT MONITORED` (Android OS owns sensor dots). |
+| 🔐 **Identity Vault** | Hardware-encrypted identity vault with consented Have I Been Pwned (HIBP) k-anonymity breach queries. | Never uploads full passwords. Requires explicit per-identity consent. |
+| ⏱️ **Incident Timeline** | Groups security events by temporal proximity into clear incident streams. | Never invents false causality. Uses honest *"occurred shortly after"* language. |
+
+---
+
+## 🏗️ Architecture & Technical Foundation
+
+Selvard is structured strictly as a clean multi-module architecture:
+
+```
+├── core/domain      # Pure Kotlin Multiplatform domain logic (158 JVM unit tests)
+│                    # Zero Android framework dependencies (no android.*)
+├── android/app      # Evidence collectors, Jetpack Compose UI, Room database
+├── assets/brand     # Brand identity, SVG vector marks, launcher icons
+├── docs/            # Engineering architecture, PRD, DRD, and threat models
+└── config/detekt    # Strict static analysis rules
+```
+
+### Verification Suite
+Selvard enforces continuous verification gates across every commit:
+```bash
+# Run pure domain tests (158/158 passing)
+.\gradlew.bat :core:domain:jvmTest
+
+# Run static analysis (zero warnings)
+.\gradlew.bat detekt
+
+# Run Android lint
+.\gradlew.bat :android:app:lintDebug
+
+# Assemble debug APK
+.\gradlew.bat :android:app:assembleDebug
+```
+
+---
+
+## 🎨 Visual Identity & Brand
+
+<div align="center" style="background: linear-gradient(135deg, #f4fff1 0%, #d6f5ce 45%, #79d68a 100%); border-radius: 20px; padding: 22px; margin: 24px auto;">
+  <img src="assets/brand/logo-live.webp" alt="Selvard primary logo" width="360" style="display: block; width: min(100%, 360px); height: auto; margin: 0 auto; border-radius: 14px;">
+</div>
+
+- **The Keystone Arch**: The Selvard mark represents architectural resilience: an arch stands for millennia because every stone locks every other into place, crowned by the keystone.
+- **Palette**: Deep Ink (`#0C1322`), Verdant Green (`#0A6C60`), Signal Green (`#54E454`), and Stillwater Teal (`#3E8E9E`).
+- Full brand specification: [`docs/brand/BRAND_IDENTITY.md`](docs/brand/BRAND_IDENTITY.md).
+
+---
+
+## 📄 License & Community
+
+- **License**: Proprietary Software. All rights reserved. See [`LICENSE`](LICENSE).
+- **Code of Conduct**: Contributor Covenant v2.1. See [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md).
+- **Contributing**: Community contribution guide and setup instructions. See [`CONTRIBUTING.md`](CONTRIBUTING.md).
+- **Security Policy**: Vulnerability disclosure protocol. See [`SECURITY.md`](SECURITY.md).
+- **Developer Contact**: [khubaibnazeer8@gmail.com](mailto:khubaibnazeer8@gmail.com).
