@@ -1,5 +1,7 @@
 package app.selvard.ui
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -41,21 +43,28 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.saveable.rememberSaveable
 import app.selvard.ui.launch.BlueprintLaunchScreen
 
+private const val STAGE_CROSSFADE_MS = 600
+
+private enum class AppStage { INTRO, ONBOARDING, HOME }
+
 @Composable
 fun SelvardApp() {
     var showBlueprintIntro by rememberSaveable { mutableStateOf(true) }
     var onboardingDone by rememberSaveable { mutableStateOf(false) }
 
-    if (showBlueprintIntro) {
-        BlueprintLaunchScreen(
-            onAnimationComplete = { showBlueprintIntro = false },
-        )
-    } else if (onboardingDone) {
-        SelvardNav(onReplayIntro = { showBlueprintIntro = true })
-    } else {
-        SelvardTheme {
-            Surface(modifier = Modifier.fillMaxSize()) {
-                OnboardingPagerContent(onDone = { onboardingDone = true })
+    val stage = when {
+        showBlueprintIntro -> AppStage.INTRO
+        onboardingDone -> AppStage.HOME
+        else -> AppStage.ONBOARDING
+    }
+    Crossfade(targetState = stage, animationSpec = tween(STAGE_CROSSFADE_MS), label = "app_stage") { current ->
+        when (current) {
+            AppStage.INTRO -> BlueprintLaunchScreen(onAnimationComplete = { showBlueprintIntro = false })
+            AppStage.HOME -> SelvardNav(onReplayIntro = { showBlueprintIntro = true })
+            AppStage.ONBOARDING -> SelvardTheme {
+                Surface(modifier = Modifier.fillMaxSize()) {
+                    OnboardingPagerContent(onDone = { onboardingDone = true })
+                }
             }
         }
     }

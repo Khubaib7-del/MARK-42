@@ -10,7 +10,7 @@
 [![Platform](https://img.shields.io/badge/Platform-Android_8.0+_(API_26--35)-brightgreen?logo=android&logoColor=white)](android/)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0.21_Multiplatform-purple?logo=kotlin&logoColor=white)](core/domain/)
 [![Architecture](https://img.shields.io/badge/Architecture-100%25_On--Device_Local--First-0A6C60)](docs/ARCHITECTURE.md)
-[![Build Status](https://img.shields.io/badge/Build-Passing_(158%2F158_Tests)-success)](docs/security/PHASE11_MVP_TEST_REPORT.md)
+[![Build Status](https://img.shields.io/badge/Build-Passing_(159%2F159_Tests)-success)](docs/security/PHASE11_MVP_TEST_REPORT.md)
 [![Static Analysis](https://img.shields.io/badge/Detekt-Clean-3E8E9E)](config/detekt/detekt.yml)
 [![Accessibility](https://img.shields.io/badge/A11y-WCAG_2.1_AA-blue)](docs/DRD.md)
 [![License](https://img.shields.io/badge/License-Proprietary-darkgray)](LICENSE)
@@ -19,7 +19,7 @@
 
 [**⬇️ Download Latest APK**](#-download--sideload-guide) • [**✨ Key Features**](#-core-guardians) • [**⚠️ Download & Install Help**](#-install-help--troubleshooting) • [**🤝 Contributing**](CONTRIBUTING.md) • [**📜 Code of Conduct**](CODE_OF_CONDUCT.md)
 
-[**Download `selvard-v0.9.0-ui-refresh.apk` (v0.9.0, UI refresh)**](https://github.com/Khubaib7-del/MARK-42/releases/download/v0.9.0-ui-refresh/selvard-v0.9.0-ui-refresh.apk) — sideload on any Android 8.0+ device. Friendlier, non-technical refresh of the same app: big rounded home cards, one clear button per card, cute curvy tab icons, and plain words everywhere — verdicts and posture still stated in words, never color or jargon. Every screen keeps its engine, consent flow, and honesty limits; only the presentation changed. **Includes the v0.1.1 scan-crash fix.** Debug-signed for testing; the release notes list every honest limit of this build.
+[**Download `selvard-v0.9.1-launch.apk` (v0.9.1, launch animation)**](https://github.com/Khubaib7-del/MARK-42/releases/download/v0.9.1-launch/selvard-v0.9.1-launch.apk) — sideload on any Android 8.0+ device. The launch sequence is rebuilt around the **current Selvard logo**: a blueprint grid, a plotter pen tracing the logo, the ribbons and core assembling, then a bloom into the brand field as the wordmark sets (tap to skip). Everything else is the v0.9.0 UI refresh. Debug-signed for testing; the release notes list every honest limit of this build. Download stuck at 100%, or Play Protect blocking the install? See [install help](docs/product/INSTALL_HELP.md).
 
 </div>
 
@@ -42,32 +42,27 @@ Traditional security and antivirus apps have become **surveillance software in d
 ## 📦 Download & Sideload Guide
 
 ### Latest Release
-👉 [**Download `selvard-v0.8.0-phase12.apk` (v0.8.0, Phase 12)**](https://github.com/Khubaib7-del/MARK-42/releases/download/v0.8.0-phase12/selvard-v0.8.0-phase12.apk)
-- **File size**: ~10.3 MB
+👉 [**Download `selvard-v0.9.1-launch.apk` (v0.9.1, launch animation)**](https://github.com/Khubaib7-del/MARK-42/releases/download/v0.9.1-launch/selvard-v0.9.1-launch.apk)
+- **File size**: ~17.6 MB
 - **Target OS**: Android 8.0 Oreo (API 26) through Android 15 (API 35)
-- **SHA-256 Checksum**: Check release assets on [GitHub Releases](https://github.com/Khubaib7-del/MARK-42/releases)
+- **SHA-256**: `8bf41fb264047dbddaa5cf9fa4991861d1b4e44392cdc4670b93dee734d1035a` (also attached to the release as `selvard-v0.9.1-launch.apk.sha256`)
 
 ---
 
 ## 🛠️ Install Help & Troubleshooting
 
-If you are downloading or installing on your phone, you may encounter two common Android security prompts. Here is exactly why they happen and how to proceed:
+Full write-up with sources and what we did and did not verify: [`docs/product/INSTALL_HELP.md`](docs/product/INSTALL_HELP.md).
 
-### 1. Chrome Download Stalls at 100% (10.33 MB / 10.33 MB)?
-- **What happens**: When downloading an `.apk` directly from GitHub in Google Chrome Mobile, Chrome's Safe Browsing service flags new, unknown APK downloads without pre-existing domain reputation. The download circle fills completely, but Chrome pauses in `.crdownload` state.
-- **How to resolve**:
-  1. Open Chrome's **Downloads** menu (`⋮` > **Downloads**).
-  2. If Chrome shows *"This file might be harmful"*, tap **Keep anyway** or **Download anyway**.
-  3. *Alternative Browsers*: Download using **Firefox**, **Brave**, or **Opera Mobile**, which do not hold `.apk` files at 100%.
-  4. *Laptop Transfer*: Download the APK on your laptop/computer and transfer it to your phone via USB or WhatsApp document sharing.
+### 1. Download stuck at 100% (10.33 MB / 10.33 MB)?
+- **Most likely cause**: the link was opened inside an in-app tab (Chrome Custom Tab) from another app such as GitHub mobile or WhatsApp. Downloads started there are known to hang at 100%. The file GitHub serves is complete and correctly labeled.
+- **Fix**: in the tab's `⋮` menu tap **Open in Chrome** (or paste the link into Chrome/Firefox/Brave directly) and download again. Then open Chrome `⋮` > **Downloads**; if it shows a "might be harmful" warning for this APK, tap **Keep** / **Download anyway**.
+- **Other routes**: download on a computer and copy the APK to the phone, or use `adb install -r`. Compare the file with the release's `.sha256` to confirm it is intact.
+- We have not reproduced the stall on a device, so the exact cause is unconfirmed; the install-help page says so.
 
-### 2. Play Protect "Blocked by Play Protect / Unknown Developer"?
-- **What happens**: When installing a sideloaded APK for the first time, Android's Play Protect scanner displays a yellow warning with an exclamation mark stating: *"Unrecognized app / Play Protect doesn't recognize this app's developer"*.
-- **Why this happens**: This is completely normal for pre-release software signed with developer keys before Google Play Store public distribution.
-- **How to install**:
-  1. Tap **"More details"** (or the small dropdown arrow below the warning).
-  2. Tap **"Install anyway"**.
-  3. The app will install cleanly and immediately be ready for use.
+### 2. "App blocked to protect your device" (Play Protect)?
+- **Why**: Play Protect has not seen this developer before. Selvard builds are signed with the generic Android *debug* certificate for now. That is expected for pre-release software, and it is neither a verdict that the app is harmful nor evidence that it is safe.
+- **Install**: tap **More details** > **Install anyway**. If only **Got it** is offered, see the install-help page for the Play Protect setting.
+- **Permanent fix**: a stable owner-held release signing key plus Android developer registration (details and dates in the install-help page).
 
 ---
 
@@ -89,7 +84,7 @@ If you are downloading or installing on your phone, you may encounter two common
 Selvard is structured strictly as a clean multi-module architecture:
 
 ```
-├── core/domain      # Pure Kotlin Multiplatform domain logic (158 JVM unit tests)
+├── core/domain      # Pure Kotlin Multiplatform domain logic (159 JVM unit tests)
 │                    # Zero Android framework dependencies (no android.*)
 ├── android/app      # Evidence collectors, Jetpack Compose UI, Room database
 ├── assets/brand     # Brand identity, SVG vector marks, launcher icons
@@ -100,7 +95,7 @@ Selvard is structured strictly as a clean multi-module architecture:
 ### Verification Suite
 Selvard enforces continuous verification gates across every commit:
 ```bash
-# Run pure domain tests (158/158 passing)
+# Run pure domain tests (159/159 passing)
 .\gradlew.bat :core:domain:jvmTest
 
 # Run static analysis (zero warnings)
@@ -121,7 +116,7 @@ Selvard enforces continuous verification gates across every commit:
   <img src="assets/brand/logo-live.webp" alt="Selvard primary logo" width="360" style="display: block; width: min(100%, 360px); height: auto; margin: 0 auto; border-radius: 14px;">
 </div>
 
-- **The Keystone Arch**: The Selvard mark represents architectural resilience: an arch stands for millennia because every stone locks every other into place, crowned by the keystone.
+- **The mark**: two dark ribbons enclosing a green core, supplied by the project owner and used unmodified as the primary logo. The launch animation is built from this logo ([`docs/brand/BRAND_IDENTITY.md` §3d](docs/brand/BRAND_IDENTITY.md); [preview](docs/brand/launch-sequence.webp)). The earlier keystone-arch vector sketch is retained only as a secondary mark.
 - **Palette**: Deep Ink (`#0C1322`), Verdant Green (`#0A6C60`), Signal Green (`#54E454`), and Stillwater Teal (`#3E8E9E`).
 - Full brand specification: [`docs/brand/BRAND_IDENTITY.md`](docs/brand/BRAND_IDENTITY.md).
 

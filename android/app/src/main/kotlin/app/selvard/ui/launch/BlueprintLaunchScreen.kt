@@ -1,414 +1,223 @@
 package app.selvard.ui.launch
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.animateFloat
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.MotionDurationScale
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import kotlinx.coroutines.delay
+import kotlin.coroutines.coroutineContext
+
+private const val WORDMARK = "SELVARD"
+private const val TAGLINE = "A privacy-first Android security environment"
+private const val PRINCIPLES = "PROPRIETARY · LOCAL-FIRST\nEVIDENCE-BASED · NO FALSE CONFIDENCE"
 
 /**
- * BlueprintLaunchScreen:
- * A cinematic architectural blueprint animation requested by the owner.
- *
- * Sequence:
- * 1. Blueprint Grid & CAD drafting lines sketch out in technical cyan/teal.
- * 2. The Keystone / Hammer emblem is constructed with measurement markers and technical ticks.
- * 3. Energy charges at the summit keystone diamond.
- * 4. Radiant Bloom: The wireframe ignites into radiant emerald green & stillwater teal.
- * 5. Smooth scale and fade transition hands off to the main app dashboard.
+ * Launch sequence, played once per cold start (tap to skip):
+ * 1. A blueprint sheet grids in and a plotter pen draws the current Selvard
+ *    logo's outline, with drafting marks around it.
+ * 2. The real logo assembles: ribbons slide in and snap together, the core
+ *    spins in and locks, a light sweep crosses the finished mark.
+ * 3. The blueprint blooms into the brand field while the wordmark sets.
+ * With animations disabled in system settings it shows the finished frame briefly.
  */
 @Composable
 fun BlueprintLaunchScreen(
     onAnimationComplete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // Stage 1: Blueprint drafting progress (0f -> 1f)
-    val blueprintProgress = remember { Animatable(0f) }
-    // Stage 2: Technical glow / spark sweep (0f -> 1f)
-    val sparkProgress = remember { Animatable(0f) }
-    // Stage 3: Radiant color bloom (0f -> 1f)
-    val colorBloom = remember { Animatable(0f) }
-    // Stage 4: Overall screen alpha for exit (1f -> 0f)
-    val exitAlpha = remember { Animatable(1f) }
+    var time by remember { mutableFloatStateOf(0f) }
+    var skipped by remember { mutableStateOf(false) }
+    var finished by remember { mutableStateOf(false) }
+    val complete by rememberUpdatedState(onAnimationComplete)
 
-    // Ambient blueprint scanline pulse
-    val infiniteTransition = rememberInfiniteTransition(label = "blueprint_pulse")
-    val gridPulse by infiniteTransition.animateFloat(
-        initialValue = 0.25f,
-        targetValue = 0.65f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2400, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse,
-        ),
-        label = "grid_alpha",
-    )
+    if (!finished) ImmersiveWhileVisible()
 
     LaunchedEffect(Unit) {
-        // Step 1: Draw blueprint wireframe lines (1.6s)
-        blueprintProgress.animateTo(
-            targetValue = 1f,
-            animationSpec = tween(durationMillis = 1600, easing = FastOutSlowInEasing),
-        )
-        // Step 2: Spark travels to the keystone diamond (0.6s)
-        sparkProgress.animateTo(
-            targetValue = 1f,
-            animationSpec = tween(durationMillis = 600, easing = LinearEasing),
-        )
-        // Step 3: Color bloom & ignition into full emerald glow (0.8s)
-        colorBloom.animateTo(
-            targetValue = 1f,
-            animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
-        )
-        delay(600)
-        // Step 4: Smooth fade out into main app
-        exitAlpha.animateTo(
-            targetValue = 0f,
-            animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing),
-        )
-        onAnimationComplete()
-    }
-
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .graphicsLayer { alpha = exitAlpha.value }
-            .background(
-                Brush.radialGradient(
-                    colors = listOf(
-                        Color(0xFF0F2636),
-                        Color(0xFF07131F),
-                        Color(0xFF040B13),
-                    ),
-                ),
-            ),
-        contentAlignment = Alignment.Center,
-    ) {
-        // Blueprint CAD Canvas
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            drawBlueprintGrid(gridAlpha = gridPulse)
-            drawCadTechnicalAnnotations(blueprintProgress.value)
-        }
-
-        // Center Emblem & Animation
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Box(
-                modifier = Modifier.size(240.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Canvas(modifier = Modifier.fillMaxSize()) {
-                    drawKeystoneBlueprint(
-                        drawProgress = blueprintProgress.value,
-                        sparkProgress = sparkProgress.value,
-                        colorBloom = colorBloom.value,
-                    )
+        if (coroutineContext[MotionDurationScale]?.scaleFactor == 0f) {
+            time = LaunchTimeline.TOTAL_MS
+            delay(LaunchTimeline.REDUCED_MOTION_HOLD_MS)
+        } else {
+            val origin = withFrameNanos { it }
+            while (!skipped && time < LaunchTimeline.TOTAL_MS) {
+                withFrameNanos { now ->
+                    time = ((now - origin) / NANOS_PER_MILLI).coerceAtMost(LaunchTimeline.TOTAL_MS)
                 }
             }
-
-            Spacer(modifier = Modifier.height(28.dp))
-
-            // Subtitle & Status
-            Text(
-                text = "SELVARD",
-                fontFamily = FontFamily.SansSerif,
-                fontWeight = FontWeight.Bold,
-                fontSize = 24.sp,
-                letterSpacing = 6.sp,
-                color = Color.White.copy(alpha = 0.9f * (0.3f + 0.7f * colorBloom.value)),
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            Text(
-                text = if (colorBloom.value > 0.5f) {
-                    "SYSTEM READY // LOCAL-FIRST SHIELD ACTIVE"
-                } else {
-                    "INITIALIZING BLUEPRINT ARCHITECTURE…"
-                },
-                fontFamily = FontFamily.Monospace,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Medium,
-                letterSpacing = 1.5.sp,
-                color = if (colorBloom.value > 0.5f) {
-                    Color(0xFF54E454)
-                } else {
-                    Color(0xFF3E8E9E).copy(alpha = 0.8f)
-                },
-            )
+            time = LaunchTimeline.TOTAL_MS
         }
-    }
-}
-
-/**
- * Draws the technical CAD blueprint coordinate grid.
- */
-private fun DrawScope.drawBlueprintGrid(gridAlpha: Float) {
-    val step = 32.dp.toPx()
-    val gridColor = Color(0xFF143B52).copy(alpha = gridAlpha * 0.45f)
-    val accentGridColor = Color(0xFF236080).copy(alpha = gridAlpha * 0.65f)
-
-    var x = 0f
-    var countX = 0
-    while (x <= size.width) {
-        val color = if (countX % 4 == 0) accentGridColor else gridColor
-        val stroke = if (countX % 4 == 0) 1.2f else 0.6f
-        drawLine(
-            color = color,
-            start = Offset(x, 0f),
-            end = Offset(x, size.height),
-            strokeWidth = stroke,
-        )
-        x += step
-        countX++
+        finished = true
+        complete()
     }
 
-    var y = 0f
-    var countY = 0
-    while (y <= size.height) {
-        val color = if (countY % 4 == 0) accentGridColor else gridColor
-        val stroke = if (countY % 4 == 0) 1.2f else 0.6f
-        drawLine(
-            color = color,
-            start = Offset(0f, y),
-            end = Offset(size.width, y),
-            strokeWidth = stroke,
-        )
-        y += step
-        countY++
-    }
-}
-
-/**
- * Technical CAD crosshairs and metadata annotations.
- */
-private fun DrawScope.drawCadTechnicalAnnotations(progress: Float) {
-    if (progress < 0.2f) return
-    val alpha = ((progress - 0.2f) / 0.8f).coerceIn(0f, 1f)
-    val color = Color(0xFF3E8E9E).copy(alpha = alpha * 0.5f)
-
-    val margin = 24.dp.toPx()
-    val arm = 16.dp.toPx()
-    val rightX = size.width - margin
-    val bottomY = size.height - margin
-
-    // Top-Left
-    drawLine(color, Offset(margin, margin), Offset(margin + arm, margin), 1.5f)
-    drawLine(color, Offset(margin, margin), Offset(margin, margin + arm), 1.5f)
-
-    // Top-Right
-    drawLine(color, Offset(rightX, margin), Offset(rightX - arm, margin), 1.5f)
-    drawLine(color, Offset(rightX, margin), Offset(rightX, margin + arm), 1.5f)
-
-    // Bottom-Left
-    drawLine(color, Offset(margin, bottomY), Offset(margin + arm, bottomY), 1.5f)
-    drawLine(color, Offset(margin, bottomY), Offset(margin, bottomY - arm), 1.5f)
-
-    // Bottom-Right
-    drawLine(color, Offset(rightX, bottomY), Offset(rightX - arm, bottomY), 1.5f)
-    drawLine(color, Offset(rightX, bottomY), Offset(rightX, bottomY - arm), 1.5f)
-}
-
-/**
- * Renders the Keystone/Hammer mark in wireframe blueprint mode, transitioning to radiant color.
- */
-private fun DrawScope.drawKeystoneBlueprint(
-    drawProgress: Float,
-    sparkProgress: Float,
-    colorBloom: Float,
-) {
-    val cx = size.width / 2f
-    val cy = size.height / 2f
-    val scale = size.minDimension / 100f
-
-    val blueprintCyan = Color(0xFF5CD8E8)
-    val radiantEmerald = Color(0xFF54E454)
-    val solidInk = Color(0xFF101A2E)
-    val stillwaterTeal = Color(0xFF3E8E9E)
-
-    val strokeColor = androidx.compose.ui.graphics.lerp(blueprintCyan, solidInk, colorBloom)
-    val keystoneColor = androidx.compose.ui.graphics.lerp(blueprintCyan, stillwaterTeal, colorBloom)
-    val archAccentColor = androidx.compose.ui.graphics.lerp(blueprintCyan, radiantEmerald, colorBloom)
-
-    if (colorBloom > 0.05f) {
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(
-                    radiantEmerald.copy(alpha = 0.35f * colorBloom),
-                    stillwaterTeal.copy(alpha = 0.20f * colorBloom),
-                    Color.Transparent,
-                ),
-                center = Offset(cx, cy),
-                radius = 110.dp.toPx(),
-            ),
-        )
-    }
-
-    drawKeystoneGroundAndPillars(cx, cy, scale, drawProgress, colorBloom, strokeColor)
-    drawKeystoneArches(cx, cy, scale, drawProgress, colorBloom, strokeColor, archAccentColor)
-    drawKeystoneCoreAndDiamond(
-        cx, cy, scale, drawProgress, sparkProgress, colorBloom,
-        strokeColor, keystoneColor, radiantEmerald, blueprintCyan,
+    LaunchScene(
+        time = { time },
+        modifier = modifier.clickable(
+            interactionSource = remember { MutableInteractionSource() },
+            indication = null,
+            onClickLabel = "Skip intro",
+        ) { skipped = true },
     )
 }
 
-private fun DrawScope.drawKeystoneGroundAndPillars(
-    cx: Float,
-    cy: Float,
-    scale: Float,
-    drawProgress: Float,
-    colorBloom: Float,
-    strokeColor: Color,
-) {
-    fun x(v: Float) = cx + (v - 48f) * scale
-    fun y(v: Float) = cy + (v - 48f) * scale
-    val strokeWidth = 8.5f * scale
-    val dashedEffect = PathEffect.dashPathEffect(floatArrayOf(12f, 8f), (1f - drawProgress) * 40f)
+private const val NANOS_PER_MILLI = 1_000_000f
 
-    if (drawProgress > 0.05f) {
-        val groundP = ((drawProgress - 0.05f) / 0.3f).coerceIn(0f, 1f)
-        val x1 = x(12f)
-        val x2 = x1 + (x(84f) - x1) * groundP
-        drawLine(
-            color = strokeColor,
-            start = Offset(x1, y(79f)),
-            end = Offset(x2, y(79f)),
-            strokeWidth = 4.5f * scale,
-            cap = StrokeCap.Round,
-            pathEffect = if (colorBloom < 0.8f) dashedEffect else null,
-        )
-    }
-
-    if (drawProgress > 0.2f) {
-        val pillarP = ((drawProgress - 0.2f) / 0.35f).coerceIn(0f, 1f)
-        val yBottom = y(74f)
-        val yTop = yBottom + (y(54f) - yBottom) * pillarP
-
-        drawLine(strokeColor, Offset(x(20f), yBottom), Offset(x(20f), yTop), strokeWidth, StrokeCap.Round)
-        drawLine(strokeColor, Offset(x(76f), yBottom), Offset(x(76f), yTop), strokeWidth, StrokeCap.Round)
-    }
-}
-
-private fun DrawScope.drawKeystoneArches(
-    cx: Float,
-    cy: Float,
-    scale: Float,
-    drawProgress: Float,
-    colorBloom: Float,
-    strokeColor: Color,
-    archAccentColor: Color,
-) {
-    if (drawProgress <= 0.45f) return
-    fun x(v: Float) = cx + (v - 48f) * scale
-    fun y(v: Float) = cy + (v - 48f) * scale
-    val strokeWidth = 8.5f * scale
-    val arcP = ((drawProgress - 0.45f) / 0.4f).coerceIn(0f, 1f)
-    val archRect = Rect(x(20f), y(26f), x(76f), y(82f))
-    val chosenColor = if (colorBloom > 0.5f) archAccentColor else strokeColor
-    val archStroke = Stroke(width = strokeWidth, cap = StrokeCap.Round, join = StrokeJoin.Round)
-
-    val leftArc = Path().apply {
-        arcTo(archRect, 180f, 65f * arcP, true)
-    }
-    drawPath(leftArc, chosenColor, style = archStroke)
-
-    val rightArc = Path().apply {
-        arcTo(archRect, 0f, -65f * arcP, true)
-    }
-    drawPath(rightArc, chosenColor, style = archStroke)
-}
-
-private fun DrawScope.drawKeystoneCoreAndDiamond(
-    cx: Float,
-    cy: Float,
-    scale: Float,
-    drawProgress: Float,
-    sparkProgress: Float,
-    colorBloom: Float,
-    strokeColor: Color,
-    keystoneColor: Color,
-    radiantEmerald: Color,
-    blueprintCyan: Color,
-) {
-    fun x(v: Float) = cx + (v - 48f) * scale
-    fun y(v: Float) = cy + (v - 48f) * scale
-
-    if (drawProgress > 0.6f) {
-        val coreP = ((drawProgress - 0.6f) / 0.35f).coerceIn(0f, 1f)
-        val coreSize = 12f * scale * coreP
-        val coreRect = Rect(
-            offset = Offset(cx - coreSize / 2f, y(62f) - coreSize / 2f),
-            size = Size(coreSize, coreSize),
-        )
-        drawRoundRect(
-            color = strokeColor,
-            topLeft = coreRect.topLeft,
-            size = coreRect.size,
-            cornerRadius = androidx.compose.ui.geometry.CornerRadius(3.5f * scale),
-        )
-    }
-
-    if (drawProgress > 0.8f) {
-        val diamondP = ((drawProgress - 0.8f) / 0.2f).coerceIn(0f, 1f)
-        val diamondPath = Path().apply {
-            moveTo(x(48f), y(17f))
-            lineTo(x(48f + 8f * diamondP), y(25.5f))
-            lineTo(x(48f), y(17f + 17f * diamondP))
-            lineTo(x(48f - 8f * diamondP), y(25.5f))
-            close()
+/** Every frame is a pure function of [time] (milliseconds on the launch clock). */
+@Composable
+internal fun LaunchScene(time: () -> Float, modifier: Modifier = Modifier) {
+    val layers = rememberEmblemLayers()
+    val wire = remember { Wireframe() }
+    BoxWithConstraints(
+        modifier = modifier
+            .fillMaxSize()
+            .clearAndSetSemantics { contentDescription = "Selvard. $TAGLINE." },
+    ) {
+        val density = LocalDensity.current
+        val emblemHeight = minOf(300.dp, maxHeight * 0.32f)
+        val frame = with(density) {
+            EmblemFrame(
+                center = Offset(maxWidth.toPx() / 2f, maxHeight.toPx() * 0.38f),
+                height = emblemHeight.toPx(),
+            )
         }
 
-        drawPath(diamondPath, color = keystoneColor)
-        drawPath(
-            path = diamondPath,
-            color = if (colorBloom > 0.3f) radiantEmerald else blueprintCyan,
-            style = Stroke(width = 2.5f * scale),
-        )
+        Canvas(Modifier.fillMaxSize()) { drawLaunchBackdrop(time(), frame, wire) }
 
-        if (sparkProgress > 0f && colorBloom < 0.9f) {
-            val sparkRadius = (6f + 12f * sparkProgress) * scale
-            drawCircle(
-                color = Color.White.copy(alpha = 1f - sparkProgress),
-                radius = sparkRadius,
-                center = Offset(x(48f), y(25.5f)),
+        Canvas(Modifier.fillMaxSize()) { drawEmblem(time(), layers, frame, wire) }
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = with(density) { (frame.center.y + frame.height / 2f).toDp() } + 28.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Wordmark(time)
+            Text(
+                text = TAGLINE,
+                fontSize = 15.sp,
+                color = LaunchPalette.DeepInk.copy(alpha = 0.88f),
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .padding(top = 10.dp, start = 32.dp, end = 32.dp)
+                    .riseIn(time, LaunchTimeline.Tagline.start, LaunchTimeline.Tagline.end),
+            )
+            Text(
+                text = PRINCIPLES,
+                fontSize = 10.sp,
+                lineHeight = 17.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.6.sp,
+                color = LaunchPalette.DeepInk.copy(alpha = 0.8f),
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .padding(top = 18.dp, start = 24.dp, end = 24.dp)
+                    .riseIn(time, LaunchTimeline.Principles.start, LaunchTimeline.Principles.end),
+            )
+        }
+
+        Caption("01 · BLUEPRINT", time) { it.pulse(LaunchTimeline.CaptionOneIn, LaunchTimeline.CaptionOneOut) }
+        Caption("02 · ASSEMBLY", time) { it.pulse(LaunchTimeline.CaptionTwoIn, LaunchTimeline.CaptionTwoOut) }
+    }
+}
+
+@Composable
+private fun Wordmark(time: () -> Float) {
+    Row(horizontalArrangement = Arrangement.spacedBy(9.dp), modifier = Modifier.padding(start = 9.dp)) {
+        WORDMARK.forEachIndexed { index, letter ->
+            val start = LaunchTimeline.WORDMARK_START_MS + index * LaunchTimeline.WORDMARK_STAGGER_MS
+            Text(
+                text = letter.toString(),
+                fontSize = 36.sp,
+                fontWeight = FontWeight.Bold,
+                color = LaunchPalette.DeepInk,
+                modifier = Modifier.riseIn(time, start, start + LaunchTimeline.WORDMARK_LETTER_MS, rise = 16.dp),
             )
         }
     }
 }
 
+@Composable
+private fun BoxWithConstraintsScope.Caption(
+    text: String,
+    time: () -> Float,
+    visibility: (Float) -> Float,
+) {
+    Text(
+        text = text,
+        fontFamily = FontFamily.Monospace,
+        fontSize = 11.sp,
+        fontWeight = FontWeight.Medium,
+        letterSpacing = 2.sp,
+        color = LaunchPalette.Cyan,
+        modifier = Modifier
+            .align(Alignment.BottomCenter)
+            .padding(bottom = 64.dp)
+            .graphicsLayer { alpha = visibility(time()) },
+    )
+}
+
+/** Fades and lifts an element into place between two clock values. */
+private fun Modifier.riseIn(time: () -> Float, startMs: Float, endMs: Float, rise: Dp = 10.dp) =
+    graphicsLayer {
+        val p = LaunchTimeline.Settle.transform(((time() - startMs) / (endMs - startMs)).coerceIn(0f, 1f))
+        alpha = p
+        translationY = (1f - p) * rise.toPx()
+    }
+
+/** Hides the system bars for the intro and always restores them, including at hand-off. */
+@Composable
+private fun ImmersiveWhileVisible() {
+    val view = LocalView.current
+    DisposableEffect(view) {
+        val window = view.context.findActivity()?.window
+        val controller = window?.let { WindowCompat.getInsetsController(it, view) }
+        controller?.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        controller?.hide(WindowInsetsCompat.Type.systemBars())
+        onDispose { controller?.show(WindowInsetsCompat.Type.systemBars()) }
+    }
+}
+
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
+}
