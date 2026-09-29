@@ -29,3 +29,6 @@ secrets/
 *.sqlite
 *.db-wal
 *.db-shm
+
+# Hoplite workspace attachments and scratch (never commit)
+.hoplite/
