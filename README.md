@@ -9,13 +9,15 @@
 
 [![Platform](https://img.shields.io/badge/Platform-Android_8.0+_(API_26--35)-brightgreen?logo=android&logoColor=white)](android/)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0.21_Multiplatform-purple?logo=kotlin&logoColor=white)](core/domain/)
-[![Architecture](https://img.shields.io/badge/Architecture-100%25_On--Device_Local--First-0A6C60)](docs/ARCHITECTURE.md)
-[![Build Status](https://img.shields.io/badge/Build-Passing_(159%2F159_Tests)-success)](docs/security/PHASE11_MVP_TEST_REPORT.md)
+[![Architecture](https://img.shields.io/badge/Architecture-Local--First-0A6C60)](docs/ARCHITECTURE.md)
+[![Build Status](https://img.shields.io/badge/Build-Passing_(178%2F178_Tests)-success)](docs/product/UI_REDESIGN_VALIDATION.md)
 [![Static Analysis](https://img.shields.io/badge/Detekt-Clean-3E8E9E)](config/detekt/detekt.yml)
 [![Accessibility](https://img.shields.io/badge/A11y-WCAG_2.1_AA-blue)](docs/DRD.md)
 [![License](https://img.shields.io/badge/License-Proprietary-darkgray)](LICENSE)
 
-*Selvard* means **the self-warden**: an institutional guardian that never outsources your trust. Every threat analysis, permission audit, and link inspection happens 100% on your device.
+*Selvard* means **the self-warden**. Link heuristics, permission review, and sample DNS filtering run on your device. Optional identity exposure checks contact HIBP with separate consent.
+
+Current source review: [implemented preview scope](docs/product/MVP_SCOPE.md) and [9 October engineering review](docs/product/PROJECT_REVIEW_2026-10-09.md). Phase completion records do not replace the remaining device and release checks.
 
 [**⬇️ Download Latest APK**](#-download--sideload-guide) • [**✨ Key Features**](#-core-guardians) • [**⚠️ Download & Install Help**](#-install-help--troubleshooting) • [**🤝 Contributing**](CONTRIBUTING.md) • [**📜 Code of Conduct**](CODE_OF_CONDUCT.md)
 
@@ -27,13 +29,13 @@
 
 ## 💡 Why Selvard?
 
-Traditional security and antivirus apps have become **surveillance software in disguise** — vacuuming up your browsing history, contacts, app usage, and telemetry to monetize or upload to third-party clouds.
+Security software can receive sensitive access to a device. Selvard prioritizes local analysis, minimal collection, explicit consent for external identity checks, and visible capability limits.
 
 **Selvard operates under an absolute governing principle:**
 > *The security system must never become the surveillance system.*
 
 - 🔒 **Zero Cloud Telemetry**: No Google Analytics, no telemetry SDKs, no user accounts, no tracking.
-- 🛡️ **100% On-Device Processing**: DNS filtering, APK permission heuristics, and link analysis run locally on your phone.
+- 🛡️ **Local Analysis**: Sample DNS filtering, app permission heuristics, and link analysis run locally on your phone. Optional HIBP identity checks contact an external provider with consent.
 - ⚖️ **Honest Limits**: We never claim your device is "100% Safe" (absence of evidence is not evidence of safety). We never pretend to have permissions or capabilities Android forbids.
 - 💎 **Curvy Liquid-Glass Experience**: Clean, approachable, modern UI with interactive status beacons and CAD blueprint launch animations designed for human beings, not hacker consoles.
 
@@ -71,10 +73,10 @@ Full write-up with sources and what we did and did not verify: [`docs/product/IN
 | Guardian | What It Does On-Device | What It Never Does (Honest Limits) |
 | :--- | :--- | :--- |
 | 🔗 **Link Guardian** | Analyzes shared/pasted URLs for typosquats, brand impersonation, punycode/IDN homoglyphs, and local threat lists. | Never intercepts in-browser clicks silently (Android forbids it; user-initiated only). |
-| 🌐 **Network Guardian** | Local split-tunnel DNS filter via `VpnService`. Refuses known malware/tracker domains on-device with **zero network egress**. | Never routes your app traffic to a remote server. Never inspects encrypted HTTPS payloads. |
+| 🌐 **Network Guardian** | Local split-tunnel DNS filter via `VpnService`. Refuses bundled sample matches locally; allowed lookups use the configured resolver. | Other traffic bypasses Selvard. No remote VPN server or encrypted HTTPS inspection; IPv6/encrypted DNS coverage remains limited. |
 | 📱 **App Guardian** | On-demand inventory audit of declared permissions, dangerous stalkerware combos (e.g. SMS + Notifications), and legacy target SDKs. | Never reads other apps' internal data or granted runtime states. Results are risk signals, not malware verdicts. |
 | 👁️ **Privacy Monitor** | Tracks observable system facts: package install/update/removal timelines, permission-change snapshots, and reboot timestamps. | Explicitly labels sensor use (mic/camera/GPS) as `NOT MONITORED` (Android OS owns sensor dots). |
-| 🔐 **Identity Vault** | Hardware-encrypted identity vault with consented Have I Been Pwned (HIBP) k-anonymity breach queries. | Never uploads full passwords. Requires explicit per-identity consent. |
+| 🔐 **Identity Vault** | Keystore-backed encrypted identity vault with consented Have I Been Pwned (HIBP) breach queries. | Separate full-address consent; requires a subscription key. Biometric gating is deferred; no match does not mean safe. |
 | ⏱️ **Incident Timeline** | Groups security events by temporal proximity into clear incident streams. | Never invents false causality. Uses honest *"occurred shortly after"* language. |
 
 ---
@@ -84,7 +86,7 @@ Full write-up with sources and what we did and did not verify: [`docs/product/IN
 Selvard is structured strictly as a clean multi-module architecture:
 
 ```
-├── core/domain      # Pure Kotlin Multiplatform domain logic (159 JVM unit tests)
+├── core/domain      # Pure Kotlin Multiplatform domain logic (178 JVM unit tests)
 │                    # Zero Android framework dependencies (no android.*)
 ├── android/app      # Evidence collectors, Jetpack Compose UI, Room database
 ├── assets/brand     # Brand identity, SVG vector marks, launcher icons
@@ -95,7 +97,7 @@ Selvard is structured strictly as a clean multi-module architecture:
 ### Verification Suite
 Selvard enforces continuous verification gates across every commit:
 ```bash
-# Run pure domain tests (159/159 passing)
+# Run pure domain tests (178/178 passing in the 9 October review)
 .\gradlew.bat :core:domain:jvmTest
 
 # Run static analysis (zero warnings)

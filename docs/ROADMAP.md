@@ -1,5 +1,9 @@
 # Roadmap
 
+Readiness correction (9 October 2026): the completed phase rows below record historical implementation/build milestones.
+For actual preview capabilities and outstanding device/release gates, see [MVP_SCOPE](product/MVP_SCOPE.md) and
+[the current source review](product/PROJECT_REVIEW_2026-10-09.md). A completed phase does not establish production protection.
+
 Phased per the governing specification. Each phase: implement -> test -> inspect -> fix -> document -> verify, then continue. Phase 0 is complete with this foundation.
 
 | Phase | Scope | Exit criteria (verified) |

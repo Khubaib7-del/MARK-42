@@ -2,6 +2,8 @@
 
 Status: Phase 0 foundation | Governing ADRs: ADR-001 … ADR-010
 
+Implementation status (9 October 2026): this document includes intended architecture. For capabilities actually wired into the preview, use [MVP_SCOPE](product/MVP_SCOPE.md) and the [source review](product/PROJECT_REVIEW_2026-10-09.md). Play Integrity, biometric gating, production intelligence, and automatic retention scheduling are not shipped capabilities.
+
 ## 1. Conceptual model
 
 ```
