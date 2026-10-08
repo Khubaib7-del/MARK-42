@@ -13,8 +13,33 @@ class AccessibilityPolicyTest {
     }
 
     @Test
-    fun noAutoPlayingAnimationShips() {
-        assertTrue(AccessibilityPolicy.NO_AUTO_ANIMATION)
+    fun nothingLoopsAndMotionHonorsReducedMotion() {
+        assertTrue(AccessibilityPolicy.NO_LOOPING_ANIMATION)
+        assertTrue(AccessibilityPolicy.HONORS_REDUCED_MOTION)
+    }
+
+    @Test
+    fun blendIsExactAtTheEndpoints() {
+        val fg = BrandPalette.SIGNAL_GREEN
+        val bg = BrandPalette.GLASS
+        assertEquals(bg, AccessibilityPolicy.blend(fg, bg, 0.0))
+        assertEquals(fg, AccessibilityPolicy.blend(fg, bg, 1.0))
+    }
+
+    @Test
+    fun everyToneMeetsAaOnItsOwnChipTint() {
+        listOf(BrandPalette.SIGNAL_GREEN, BrandPalette.SLATE_LIGHT, BrandPalette.AMBER, BrandPalette.CORAL).forEach { tone ->
+            val chipFill = AccessibilityPolicy.blend(tone, BrandPalette.GLASS, AccessibilityPolicy.CHIP_TINT_ALPHA)
+            val ratio = AccessibilityPolicy.contrastRatio(tone, chipFill)
+            assertTrue(ratio >= AccessibilityPolicy.TEXT_MIN_RATIO, "tone ${tone.toString(16)} chip ratio $ratio")
+        }
+    }
+
+    @Test
+    fun postureHeadlinesAreDistinctAndNeverSafe() {
+        val headlines = SecurityPosture.entries.map { AccessibilityPolicy.postureHeadline(it) }
+        assertEquals(headlines.size, headlines.toSet().size)
+        assertTrue(headlines.none { it.contains("safe", ignoreCase = true) })
     }
 
     @Test

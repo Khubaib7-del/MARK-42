@@ -7,15 +7,13 @@ import kotlin.test.assertTrue
 class AppSectionsTest {
 
     @Test
-    fun sevenSectionsInRoadmapOrder() {
+    fun fiveSectionsInDisplayOrder() {
         assertEquals(
             listOf(
                 AppSection.HOME,
-                AppSection.SECURITY,
-                AppSection.NETWORK,
-                AppSection.APPS,
-                AppSection.IDENTITY,
+                AppSection.SHIELD,
                 AppSection.TIMELINE,
+                AppSection.IDENTITY,
                 AppSection.SETTINGS,
             ),
             AppSection.entries.toList(),
@@ -26,7 +24,7 @@ class AppSectionsTest {
     fun routesAreUniqueAndStable() {
         val routes = AppSection.entries.map { it.route }
         assertEquals(routes.size, routes.toSet().size)
-        assertEquals(listOf("home", "security", "network", "apps", "identity", "timeline", "settings"), routes)
+        assertEquals(listOf("home", "shield", "timeline", "identity", "settings"), routes)
     }
 
     @Test
@@ -41,12 +39,22 @@ class AppSectionsTest {
     }
 
     @Test
-    fun everySectionHasAKnownRoundedIconKey() {
-        val known = setOf("home", "shield", "wifi", "apps", "person", "history", "settings")
+    fun everySectionHasADistinctKnownIconKey() {
+        val known = setOf("home", "shield", "timeline", "person", "settings")
         AppSection.entries.forEach { section ->
             assertTrue(section.iconKey in known, "${section.route} has unknown icon key ${section.iconKey}")
         }
         val keys = AppSection.entries.map { it.iconKey }
         assertEquals(keys.size, keys.toSet().size, "tab icons must be distinct")
+    }
+
+    @Test
+    fun shieldHoldsTheFourGuardianPanesInOrder() {
+        assertEquals(
+            listOf(ShieldPane.LINKS, ShieldPane.NETWORK, ShieldPane.APPS, ShieldPane.PRIVACY),
+            ShieldPane.entries.toList(),
+        )
+        assertEquals(ShieldPane.entries.size, ShieldPane.entries.map { it.route }.toSet().size)
+        ShieldPane.entries.forEach { assertTrue(it.contentDescription.length > it.title.length) }
     }
 }
