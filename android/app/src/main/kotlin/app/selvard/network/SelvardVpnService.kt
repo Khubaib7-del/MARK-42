@@ -8,6 +8,12 @@ import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.VpnService
 import android.os.ParcelFileDescriptor
+import android.os.SystemClock
+import android.system.ErrnoException
+import android.system.Os
+import android.system.OsConstants
+import android.system.StructPollfd
+import android.util.Log
 import app.selvard.MainActivity
 import app.selvard.R
 import app.selvard.SelvardApplication
@@ -22,19 +28,27 @@ import app.selvard.core.domain.event.SecurityEvent
 import app.selvard.core.domain.event.Severity
 import app.selvard.core.domain.event.newEventId
 import app.selvard.core.domain.net.DnsFilterEngine
+import app.selvard.core.domain.net.DnsMessage
 import app.selvard.core.domain.net.DnsParser
 import app.selvard.core.domain.net.FilterDecision
 import app.selvard.core.domain.net.IpPacketCodec
-import java.io.OutputStream
+import java.io.IOException
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
-import java.util.concurrent.atomic.AtomicBoolean
+import java.net.SocketTimeoutException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Local-only Network Guardian tunnel (ADR-003). Split-tunnel DNS filter:
@@ -45,36 +59,46 @@ import kotlinx.coroutines.launch
  */
 class SelvardVpnService : VpnService() {
 
-    private var tunnel: ParcelFileDescriptor? = null
-    private val running = AtomicBoolean(false)
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    // activeRun/state updates are confined to Main, including OS revocation callbacks.
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    @Volatile
+    private var activeRun: TunnelRun? = null
 
+    private class TunnelRun(var startId: Int) {
+        var tunnel: ParcelFileDescriptor? = null
+        var pump: DnsTunnelPump? = null
+        var job: Job? = null
+    }
+
+    // Android startup and pump APIs can throw operational Exceptions of several types.
+    // These boundaries deliberately catch Exception (never Error), preserving cancellation.
+    @Suppress("TooGenericExceptionCaught")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == ACTION_STOP) {
-            stopTunnel()
+            stopTunnel(startId)
             return START_NOT_STICKY
         }
-        startAsForeground()
-        if (!running.getAndSet(true)) {
+        activeRun?.let {
+            it.startId = startId
+            return START_STICKY
+        }
+        val run = TunnelRun(startId)
+        activeRun = run
+        return try {
+            startAsForeground()
             val app = application as SelvardApplication
+            app.networkGuardianState.setRunning(false)
             val resolver = systemResolverAddress()
-            tunnel = Builder()
+            val established = Builder()
                 .addAddress(VPN_ADDRESS, 32)
                 .addRoute(VPN_DNS, 32)
                 .addDnsServer(VPN_DNS)
                 .setSession(NOTIFICATION_TITLE)
                 .setMtu(MTU)
-                .establish()
-            val established = tunnel
-            if (established == null) {
-                // OS refused/revoked the tunnel: surface the honest state, never fake PROTECTED.
-                app.networkGuardianState.setRunning(false)
-                running.set(false)
-                stopForeground(STOP_FOREGROUND_REMOVE)
-                stopSelf()
-                return START_NOT_STICKY
-            }
-            app.networkGuardianState.setRunning(true)
+                // Readiness polling below explicitly handles EAGAIN; no idle read kills the pump.
+                .setBlocking(false)
+                .establish() ?: throw TunnelFailure(FailureCode.TUN_REFUSED)
+            run.tunnel = established
             val pump = DnsTunnelPump(
                 tunnel = established,
                 engine = app.dnsFilterEngine,
@@ -82,9 +106,37 @@ class SelvardVpnService : VpnService() {
                 protectSocket = { socket -> protect(socket) },
                 onBlocked = { host, decision -> recordBlock(app, host, decision) },
             )
-            scope.launch { pump.run() }
+            run.pump = pump
+            run.job = scope.launch(Dispatchers.IO) {
+                try {
+                    pump.run {
+                        withContext(Dispatchers.Main.immediate) {
+                            if (activeRun === run) app.networkGuardianState.setRunning(true)
+                        }
+                    }
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (failure: Exception) {
+                    if (currentCoroutineContext().isActive) {
+                                            warn((failure as? TunnelFailure)?.code ?: FailureCode.PUMP_FAILED)
+                                        }
+                } finally {
+                    pump.close()
+                    withContext(NonCancellable + Dispatchers.Main.immediate) {
+                        // A completed/cancelled old pump must never stop a replacement tunnel.
+                        if (activeRun === run) stopTunnel(run.startId)
+                    }
+                }
+            }
+            START_STICKY
+        } catch (cancelled: CancellationException) {
+            stopTunnel(startId)
+            throw cancelled
+        } catch (failure: Exception) {
+            warn((failure as? TunnelFailure)?.code ?: FailureCode.STARTUP_FAILED)
+            stopTunnel(startId)
+            START_NOT_STICKY
         }
-        return START_STICKY
     }
 
     /** The user's current resolver, so filtering does not silently change who resolves names. */
@@ -112,47 +164,58 @@ class SelvardVpnService : VpnService() {
         startForeground(NOTIFICATION_ID, notification)
     }
 
-    private fun stopTunnel() {
-        if (running.getAndSet(false)) {
-            (application as SelvardApplication).networkGuardianState.setRunning(false)
-            scope.cancel()
-            tunnel?.close()
-            tunnel = null
-            stopForeground(STOP_FOREGROUND_REMOVE)
-            stopSelf()
-        }
+    private fun stopTunnel(startId: Int? = null) {
+        val run = activeRun
+        activeRun = null
+        // Close before cancellation: cancellation alone cannot interrupt socket.receive().
+        run?.pump?.close() ?: run?.tunnel?.let { closeSafely { it.close() } }
+        run?.job?.cancel()
+        closeSafely { (application as? SelvardApplication)?.networkGuardianState?.setRunning(false) }
+        closeSafely { stopForeground(STOP_FOREGROUND_REMOVE) }
+        if (startId != null) closeSafely { stopSelfResult(startId) }
     }
 
     override fun onDestroy() {
         stopTunnel()
+        scope.cancel()
         super.onDestroy()
     }
 
     override fun onRevoke() {
-        stopTunnel()
-        super.onRevoke()
+        // VpnService revocation may arrive off Main. Capture identity, not mutable run state.
+        val revokedRun = activeRun ?: return
+        scope.launch {
+            if (activeRun === revokedRun) stopTunnel(revokedRun.startId)
+        }
+        // Replace the default unqualified stopSelf() with start-aware cleanup above.
     }
 
     private fun recordBlock(app: SelvardApplication, host: String, decision: FilterDecision) {
-        val event = SecurityEvent(
-            eventId = newEventId(),
-            timestampMillis = System.currentTimeMillis(),
-            source = "network_guardian",
-            category = EventCategory.NETWORK,
-            severity = Severity.HIGH,
-            confidence = Confidence.HIGH,
-            // Host comes off the wire: truncate to the data-minimization limit
-            // so a >128-char name records instead of throwing inside the scope.
-            affectedAsset = AffectedAsset(AssetType.URL, host.take(AffectedAsset.MAX_REF_LENGTH)),
-            evidence = listOf(
-                Evidence("dns_blocked", host.take(Evidence.MAX_VALUE_LENGTH), decision.listName ?: "local"),
-            ),
-            actionTaken = ActionTaken.BLOCKED,
-            privacyClassification = PrivacyClass.SENSITIVE,
-        )
         app.scope.launch {
-            app.eventBus.publish(event)
-            app.eventStore.append(event)
+            try {
+                val event = SecurityEvent(
+                    eventId = newEventId(),
+                    timestampMillis = System.currentTimeMillis(),
+                    source = "network_guardian",
+                    category = EventCategory.NETWORK,
+                    severity = Severity.HIGH,
+                    confidence = Confidence.HIGH,
+                    // Minimize wire-supplied names before constructing the persisted event.
+                    affectedAsset = AffectedAsset(AssetType.URL, host.take(AffectedAsset.MAX_REF_LENGTH)),
+                    evidence = listOf(
+                        Evidence("dns_blocked", host.take(Evidence.MAX_VALUE_LENGTH), decision.listName ?: "local"),
+                    ),
+                    actionTaken = ActionTaken.BLOCKED,
+                    privacyClassification = PrivacyClass.SENSITIVE,
+                )
+                app.eventBus.publish(event)
+                app.eventStore.append(event)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                // Best-effort persistence must not bring down filtering or the app scope.
+                warn(FailureCode.BLOCK_RECORD_FAILED)
+            }
         }
     }
 
@@ -180,26 +243,70 @@ class DnsTunnelPump(
     private val protectSocket: (DatagramSocket) -> Boolean,
     private val onBlocked: (host: String, decision: FilterDecision) -> Unit,
 ) {
-    private var output: OutputStream? = null
+    private val resourceLock = Any()
+    @Volatile
+    private var closed = false
+    private var relaySocket: DatagramSocket? = null
 
-    fun run() {
-        val input = ParcelFileDescriptor.AutoCloseInputStream(tunnel)
-        output = ParcelFileDescriptor.AutoCloseOutputStream(tunnel)
-        val socket = DatagramSocket().also { protectSocket(it) }
-        val buf = ByteArray(MAX_PACKET)
+    suspend fun run(onReady: suspend () -> Unit = {}) {
         try {
-            while (true) {
-                val n = input.read(buf)
-                if (n <= 0) continue
-                handlePacket(buf.copyOf(n), socket)
+            // Allocation, protection and connection all belong to the cleanup boundary.
+            val socket = synchronized(resourceLock) {
+                if (closed) return
+                DatagramSocket().also { relaySocket = it }
             }
-        } catch (_: Exception) {
-            // Tunnel closed: normal shutdown path.
+            if (!protectSocket(socket)) throw TunnelFailure(FailureCode.SOCKET_PROTECTION_FAILED)
+            resolverAddress?.let { socket.connect(it, IpPacketCodec.DNS_PORT) }
+            currentCoroutineContext().ensureActive()
+            if (closed) return
+            onReady()
+            readPackets(socket)
         } finally {
-            runCatching { input.close() }
-            runCatching { output?.close() }
-            runCatching { socket.close() }
+            close()
         }
+    }
+
+    /** Idempotent and safe against stop racing socket allocation on the IO dispatcher. */
+    fun close() {
+        val socket = synchronized(resourceLock) {
+            if (closed) return
+            closed = true
+            relaySocket.also { relaySocket = null }
+        }
+        // Wake a resolver receive immediately; TUN polling is also bounded if close does not wake it.
+        closeSafely { socket?.close() }
+        closeSafely { tunnel.close() }
+    }
+
+    private suspend fun readPackets(socket: DatagramSocket) {
+        val descriptor = tunnel.fileDescriptor
+        val pollFd = StructPollfd().apply {
+            fd = descriptor
+            events = OsConstants.POLLIN.toShort()
+        }
+        val buf = ByteArray(MAX_PACKET)
+        while (!closed) {
+            currentCoroutineContext().ensureActive()
+            val n = readReadyPacket(pollFd, buf) ?: continue
+            if (n == 0) throw TunnelFailure(FailureCode.TUN_EOF)
+            currentCoroutineContext().ensureActive()
+            handlePacket(buf.copyOf(n), socket)
+        }
+    }
+
+    private fun readReadyPacket(pollFd: StructPollfd, buf: ByteArray): Int? = try {
+        if (Os.poll(arrayOf(pollFd), TUN_POLL_MS) == 0 || closed) {
+            null
+        } else {
+            if (pollFd.revents.toInt() and OsConstants.POLLIN == 0) {
+                throw TunnelFailure(FailureCode.TUN_UNAVAILABLE)
+            }
+            Os.read(pollFd.fd, buf, 0, buf.size)
+        }
+    } catch (failure: ErrnoException) {
+        // Readiness can race; only read/poll EAGAIN/EINTR are retryable.
+        if (!closed && failure.errno != OsConstants.EAGAIN && failure.errno != OsConstants.EINTR) throw failure
+        null
     }
 
     private fun handlePacket(packet: ByteArray, socket: DatagramSocket) {
@@ -210,7 +317,7 @@ class DnsTunnelPump(
         val payload = packet.copyOfRange(ihl + 8, packet.size)
         val query = runCatching { DnsParser.parse(payload) }.getOrNull()
         // Fail closed: unparseable DNS gets no answer at all.
-        if (query == null || query.questions.isEmpty()) return
+        if (query == null || query.isResponse || query.questions.isEmpty()) return
         val host = query.questions.first().name
         // The queried name comes off the wire: a blank/absurd name must fail
         // closed (no answer), never throw up into the pump loop (which would
@@ -221,28 +328,92 @@ class DnsTunnelPump(
                 onBlocked(host, decision)
                 DnsParser.buildRefused(query)
             }
-            else -> relayToResolver(payload, socket) ?: return
+            else -> relayToResolver(payload, query, socket) ?: return
         }
         val responsePacket = IpPacketCodec.buildUdpResponsePacket(packet, responsePayload) ?: return
-        runCatching { output?.write(responsePacket) }
+        writeResponse(responsePacket)
     }
 
-    private fun relayToResolver(payload: ByteArray, socket: DatagramSocket): ByteArray? {
-        val resolver = resolverAddress ?: return null
-        return try {
-            socket.soTimeout = RESOLVER_TIMEOUT_MS
-            socket.send(DatagramPacket(payload, payload.size, resolver, IpPacketCodec.DNS_PORT))
-            val reply = ByteArray(MAX_PACKET)
-            val received = DatagramPacket(reply, reply.size)
-            socket.receive(received)
-            reply.copyOf(received.length)
-        } catch (_: Exception) {
-            null // resolver unreachable: fail closed (no answer)
+    private fun writeResponse(responsePacket: ByteArray) {
+        if (closed) return
+        // A failed/partial write is a pump failure, not a silently healthy tunnel.
+        if (Os.write(tunnel.fileDescriptor, responsePacket, 0, responsePacket.size) != responsePacket.size) {
+            throw TunnelFailure(FailureCode.TUN_WRITE_FAILED)
         }
     }
+
+    private fun relayToResolver(payload: ByteArray, query: DnsMessage, socket: DatagramSocket): ByteArray? {
+        if (resolverAddress == null || closed) return null
+        return try {
+            // The protected, connected UDP socket accepts replies only from this system resolver.
+            socket.send(DatagramPacket(payload, payload.size))
+            receiveReply(query, socket)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: SocketTimeoutException) {
+            if (!closed) warn(FailureCode.RESOLVER_TIMEOUT)
+            null
+        } catch (_: Exception) {
+            if (!closed) warn(FailureCode.RESOLVER_FAILED)
+            null // Resolver unreachable: fail closed (no answer), never switch providers.
+        }
+    }
+
+    private fun receiveReply(query: DnsMessage, socket: DatagramSocket): ByteArray? {
+        val deadline = SystemClock.elapsedRealtime() + RESOLVER_TIMEOUT_MS
+        val reply = ByteArray(MAX_PACKET)
+        while (!closed) {
+            val remaining = deadline - SystemClock.elapsedRealtime()
+            if (remaining <= 0) throw SocketTimeoutException()
+            socket.soTimeout = remaining.toInt()
+            val received = DatagramPacket(reply, reply.size)
+            socket.receive(received)
+            val bytes = reply.copyOf(received.length)
+            val response = runCatching { DnsParser.parse(bytes) }.getOrNull() ?: continue
+            // Discard delayed/unrelated replies without extending the five-second deadline.
+            if (response.isResponse && response.id == query.id && sameQuestions(query, response)) return bytes
+        }
+        return null
+    }
+
+    private fun sameQuestions(query: DnsMessage, response: DnsMessage): Boolean =
+        query.questions.size == response.questions.size && query.questions.zip(response.questions).all { (expected, actual) ->
+            expected.name.equals(actual.name, ignoreCase = true) && expected.type == actual.type && expected.clazz == actual.clazz
+        }
 
     companion object {
         private const val MAX_PACKET = 1500
+        private const val TUN_POLL_MS = 250
         private const val RESOLVER_TIMEOUT_MS = 5000
+    }
+}
+
+private enum class FailureCode {
+    STARTUP_FAILED,
+    TUN_REFUSED,
+    PUMP_FAILED,
+    SOCKET_PROTECTION_FAILED,
+    TUN_UNAVAILABLE,
+    TUN_EOF,
+    TUN_WRITE_FAILED,
+    RESOLVER_TIMEOUT,
+    RESOLVER_FAILED,
+    CLEANUP_FAILED,
+    BLOCK_RECORD_FAILED,
+}
+
+private class TunnelFailure(val code: FailureCode) : IOException(code.name)
+
+private fun warn(code: FailureCode) {
+    // Never pass hostnames, tokens, exception messages or stack traces to platform logs.
+    Log.w("NetworkGuardian", code.name)
+}
+
+private inline fun closeSafely(close: () -> Unit) {
+    try {
+        close()
+    } catch (_: Exception) {
+        // Each resource gets its own boundary so one failed close cannot skip the rest.
+        warn(FailureCode.CLEANUP_FAILED)
     }
 }
