@@ -39,7 +39,7 @@ class IdentityVault(context: Context, private val keyring: KeystoreKeyring = Key
 
     /** Deletes the vault file itself: the full deletion flow. */
     suspend fun deleteAll(): Unit = mutex.withLock {
-        if (file.exists()) file.delete()
+        check(!file.exists() || file.delete()) { "Vault deletion failed" }
     }
 
     private fun readAll(): List<VaultEntry> {

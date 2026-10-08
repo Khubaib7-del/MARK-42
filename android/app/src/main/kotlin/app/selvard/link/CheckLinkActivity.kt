@@ -9,6 +9,7 @@ import app.selvard.SelvardApplication
 import app.selvard.core.domain.link.SharedUrlParser
 import app.selvard.ui.link.LinkCheckScreen
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
 /**
@@ -38,8 +39,15 @@ class CheckLinkActivity : ComponentActivity() {
                 onAnalyzed = { url, verdict ->
                     val event = LinkEventRecorder.toEvent(url, verdict, System.currentTimeMillis())
                     lifecycleScope.launch(Dispatchers.IO) {
-                        app.eventBus.publish(event)
-                        app.eventStore.append(event)
+                        // Storage failure must not discard the visible analysis or crash the share target.
+                        try {
+                            app.eventBus.publish(event)
+                            app.eventStore.append(event)
+                        } catch (cancelled: CancellationException) {
+                            throw cancelled
+                        } catch (_: Exception) {
+                            android.util.Log.w("LinkGuardian", "EVENT_RECORD_FAILED")
+                        }
                     }
                 },
             )

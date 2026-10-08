@@ -13,7 +13,6 @@ import app.selvard.core.domain.privacy.BootRecord
 import app.selvard.core.domain.privacy.PackageEntry
 import app.selvard.core.domain.store.EventStore
 import app.selvard.network.NetworkGuardianState
-import app.selvard.privacy.PackageEvents
 import app.selvard.privacy.SelvardSeverity
 import app.selvard.data.KeystoreKeyring
 import app.selvard.data.RoomEventStore
@@ -108,12 +107,5 @@ class SelvardApplication : Application() {
         /** Boot-redelivered broadcasts dedupe window (process-lifetime, in-memory). */
         const val DEDUPE_WINDOW = 64
 
-        // PackageEvents kinds are referenced for discoverability; recording uses the string kinds.
-        @Suppress("unused")
-        private val kinds = listOf(
-            PackageEvents.PACKAGE_ADDED,
-            PackageEvents.PACKAGE_REMOVED,
-            PackageEvents.PACKAGE_REPLACED,
-        )
     }
 }
