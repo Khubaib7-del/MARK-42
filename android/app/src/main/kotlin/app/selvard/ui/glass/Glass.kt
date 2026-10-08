@@ -1,13 +1,17 @@
 package app.selvard.ui.glass
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -18,32 +22,22 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
+import app.selvard.ui.design.SelvardDesign
+import app.selvard.ui.design.SelvardSurface
 import androidx.compose.ui.unit.dp
-import app.selvard.ui.theme.SelvardTheme
 
-/**
- * Shared "calm glass" card system for the non-technical UI refresh.
- * One rounded surface + one tonal variant, plain-language headings, and an
- * optional rounded icon. The icon is a navigation affordance only: verdict
- * and posture meaning always stays in words (AccessibilityPolicy).
- * Colors come from [SelvardTheme]; translucency is restrained (alpha 0.55 on
- * the tonal wash) so the WCAG AA pairs still hold on light surfaces.
- */
+/** Compatibility API for existing screens; dark glass uses opaque, contrast-tested fills. */
 object Glass {
-    val CardShape = androidx.compose.foundation.shape.RoundedCornerShape(28.dp)
-    val SheetShape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp)
-    const val TONAL_WASH_ALPHA = 0.55f
+    val CardShape = SelvardDesign.CardShape
+    val SheetShape = SelvardDesign.SheetShape
     const val HERO_ICON_SIZE_DP = 56
     const val ROW_ICON_SIZE_DP = 40
 }
 
+/** Editorial header, not another full-width paragraph card. Copy remains readable at large font scales. */
 @Composable
 fun GlassHero(
     icon: ImageVector,
@@ -52,40 +46,24 @@ fun GlassHero(
     subtitle: String,
     modifier: Modifier = Modifier,
 ) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = Glass.CardShape,
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 2.dp,
+    Row(
+        modifier = modifier.fillMaxWidth().padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.Top,
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            Surface(
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = Glass.TONAL_WASH_ALPHA),
-                modifier = Modifier.size(Glass.HERO_ICON_SIZE_DP.dp),
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = iconDescription,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .padding(12.dp)
-                        .size((Glass.HERO_ICON_SIZE_DP - 24).dp),
-                )
-            }
+        GlassIcon(icon, iconDescription, hero = true)
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 title,
                 style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier
-                    .padding(top = 12.dp)
-                    .semantics { heading() },
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.semantics { heading() },
             )
             Text(
                 subtitle,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 4.dp),
+                modifier = Modifier.padding(top = 6.dp),
             )
         }
     }
@@ -101,50 +79,51 @@ fun GlassCard(
     onAction: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = Glass.CardShape,
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 1.dp,
-    ) {
-        Column(modifier = Modifier.padding(18.dp)) {
+    SelvardSurface(modifier = modifier.fillMaxWidth(), shape = Glass.CardShape) {
+        Column(modifier = Modifier.padding(20.dp)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                if (icon != null) {
-                    Surface(
-                        shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = Glass.TONAL_WASH_ALPHA),
-                        modifier = Modifier.size(Glass.ROW_ICON_SIZE_DP.dp),
-                    ) {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = iconDescription,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier
-                                .padding(8.dp)
-                                .size((Glass.ROW_ICON_SIZE_DP - 16).dp),
-                        )
-                    }
-                }
+                if (icon != null) GlassIcon(icon, iconDescription)
                 Text(
                     title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier
-                        .weight(1f)
-                        .semantics { heading() },
+                    modifier = Modifier.weight(1f).semantics { heading() },
                 )
             }
-            Column(modifier = Modifier.padding(top = 10.dp)) { content() }
+            Column(modifier = Modifier.padding(top = 12.dp)) { content() }
             if (actionLabel != null && onAction != null) {
                 OutlinedButton(
                     onClick = onAction,
-                    modifier = Modifier.padding(top = 12.dp),
+                    shape = SelvardDesign.ControlShape,
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                    ),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                    modifier = Modifier.padding(top = 16.dp)
+                        .heightIn(min = SelvardDesign.MinimumControlSize),
                 ) { Text(actionLabel) }
             }
         }
+    }
+}
+
+@Composable
+private fun GlassIcon(icon: ImageVector, description: String?, hero: Boolean = false) {
+    val size = if (hero) Glass.HERO_ICON_SIZE_DP else Glass.ROW_ICON_SIZE_DP
+    Surface(
+        shape = RoundedCornerShape(if (hero) 20.dp else 14.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        modifier = Modifier.size(size.dp),
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = description,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(if (hero) 16.dp else 10.dp),
+        )
     }
 }
 
@@ -156,34 +135,25 @@ fun GlassStatusRow(
     detail: String,
     modifier: Modifier = Modifier,
 ) {
-    // Tonal wash background; words carry the meaning, never the tint.
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = Glass.SheetShape,
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = Glass.TONAL_WASH_ALPHA),
-    ) {
+    SelvardSurface(modifier = modifier.fillMaxWidth(), shape = Glass.SheetShape) {
         Row(
-            modifier = Modifier.padding(14.dp),
+            modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = iconDescription,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(28.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(24.dp),
             )
-            Column {
-                Text(
-                    headline,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(headline, style = MaterialTheme.typography.titleSmall)
                 Text(
                     detail,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 2.dp),
+                    modifier = Modifier.padding(top = 4.dp),
                 )
             }
         }
@@ -200,13 +170,14 @@ fun GlassPrimaryButton(
     Button(
         onClick = onClick,
         enabled = enabled,
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+        shape = SelvardDesign.ControlShape,
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = Color.White,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
         ),
-        modifier = modifier.fillMaxWidth(),
-    ) { Text(label) }
+        contentPadding = PaddingValues(horizontal = 24.dp, vertical = 14.dp),
+        modifier = modifier.fillMaxWidth().heightIn(min = SelvardDesign.MinimumControlSize),
+    ) { Text(label, style = MaterialTheme.typography.labelLarge) }
 }
 
 @Composable
@@ -226,18 +197,4 @@ fun GlassSectionActions(actions: @Composable RowScope.() -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) { actions() }
-}
-
-/** Preview-free sanity: every value used above must exist on the light theme. */
-@Composable
-@Suppress("unused")
-private fun GlassThemeSmoke() {
-    SelvardTheme {
-        Text(
-            "smoke",
-            modifier = Modifier
-                .alpha(Glass.TONAL_WASH_ALPHA)
-                .semantics { contentDescription = "smoke" },
-        )
-    }
 }

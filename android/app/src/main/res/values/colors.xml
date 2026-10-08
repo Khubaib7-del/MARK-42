@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="mist">#F6F8FB</color>
+    <color name="deep_ink">#0C1322</color>
     <!-- Sampled from the primary logo background. -->
     <color name="launcher_background">#FDFEFB</color>
 </resources>

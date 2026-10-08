@@ -38,6 +38,21 @@ Every dependency is attack surface — especially in a security product, where t
 | YARA / static-analysis libs (Phase 3+) | APK triage | **Deferred review** | Evaluate libyara on Android (size, NDK surface) before adoption |
 | Any LLM SDK | Explanation features (V2) | **Prohibited in decision path** | SECURITY_ARCHITECTURE §4 |
 
+## Bundled UI assets (native redesign)
+
+- **Manrope variable font:** Google Fonts `ofl/manrope/Manrope[wght].ttf`, SIL Open Font License 1.1.
+  Bundled locally as `res/font/manrope_variable.ttf`; no runtime font downloads or provider requests.
+  License ships in `android/app/src/main/assets/licenses/Manrope-OFL.txt`.
+  This is a static font asset, not a new Gradle dependency. Typography still needs device-scale review;
+  bundling does not establish that every screen is accessible.
+- **Lucide 0.468.0:** pinned static vector source, ISC license; generated into Compose `ImageVector`s
+  by `scripts/ui/build_icons.mjs`. License ships in `assets/licenses/Lucide-ISC.txt`.
+  No runtime icon library, executable SVG, network fetch, or transitive package is shipped.
+  The generator is an explicit developer operation that fetches pinned SVGs; inspect generated diffs
+  on regeneration. Existing Material icons remain for legacy callers; removal is deferred.
+- No blur/shader library, analytics SDK, or remote image service was added for the redesign.
+  A full dependency vulnerability scan is still a separate release gate, not claimed by this review.
+
 ## Supply-chain protections
 
 - No dynamic code loading (Play policy, also our O-mitigation).
