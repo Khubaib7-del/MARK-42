@@ -1,6 +1,20 @@
 package app.selvard.ui
 
 import android.os.Build
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import app.selvard.ui.design.SelvardIcons
+import app.selvard.ui.design.SelvardSurface
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,9 +41,7 @@ import app.selvard.core.domain.integrity.PlayIntegrityState
 import app.selvard.core.domain.privacy.PermissionSnapshot
 import app.selvard.core.domain.privacy.PrivacyCoverage
 import app.selvard.core.domain.privacy.diffSnapshots
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Info
-import androidx.compose.material.icons.rounded.Lock
+
 import app.selvard.integrity.AndroidIntegritySource
 import app.selvard.privacy.PrivacyEventRecorder
 import app.selvard.ui.glass.GlassCard
@@ -48,43 +60,57 @@ import kotlinx.coroutines.withContext
 fun PrivacyMonitorView() {
     val context = LocalContext.current
     val app = context.applicationContext as SelvardApplication
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+                .padding(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
         GlassHero(
-            icon = Icons.Rounded.Lock,
+            icon = SelvardIcons.Eye,
             iconDescription = "Privacy facts",
             title = "Privacy Monitor",
-            subtitle = "Observable privacy facts. Selvard records installs, permission snapshots and boots " +
-                "while installed; everything it cannot see is labeled, with the reason.",
+            subtitle = "Observed facts, not a protection verdict.",
         )
-        Spacer(Modifier.height(12.dp))
-        CoverageList()
-        Spacer(Modifier.height(12.dp))
         SnapshotSection(app)
-        Spacer(Modifier.height(12.dp))
         IntegritySection(context, app)
+        Text("Visibility & limits", style = MaterialTheme.typography.titleMedium)
+        CoverageList()
     }
 }
 
 @Composable
 private fun CoverageList() {
-    PrivacyCoverage.entries.forEach { entry ->
-        GlassCard(
-            title = entry.area.title,
-            icon = Icons.Rounded.Info,
-            iconDescription = entry.area.title,
-            modifier = Modifier.padding(vertical = 3.dp),
-        ) {
-            Text(
-                stateLabel(entry.state, entry.coveredBy),
-                style = MaterialTheme.typography.labelMedium,
-                color = stateColor(entry),
-            )
-            Text(
-                entry.note,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 2.dp),
-            )
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        PrivacyCoverage.entries.forEach { entry ->
+            var expanded by remember(entry.area) { mutableStateOf(false) }
+            SelvardSurface(modifier = Modifier.fillMaxWidth()) {
+                Column {
+                    Row(
+                        modifier = Modifier.fillMaxWidth()
+                            .semantics { stateDescription = if (expanded) "Expanded" else "Collapsed" }
+                            .clickable(role = Role.Button, onClickLabel = "Show or hide coverage explanation") {
+                                expanded = !expanded
+                            }.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Icon(SelvardIcons.Info, contentDescription = null, modifier = Modifier.size(22.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(entry.area.title, style = MaterialTheme.typography.titleSmall)
+                            Text(stateLabel(entry.state, entry.coveredBy),
+                                style = MaterialTheme.typography.bodySmall, color = stateColor(entry))
+                        }
+                        Icon(if (expanded) SelvardIcons.ChevronDown else SelvardIcons.ChevronRight,
+                            contentDescription = null, modifier = Modifier.size(20.dp))
+                    }
+                    if (expanded) {
+                        Text(entry.note, style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp))
+                    }
+                }
+            }
         }
     }
 }
@@ -130,12 +156,16 @@ private fun SnapshotSection(app: SelvardApplication) {
         },
     ) {
         Text(
-            "Compares requested permissions between two snapshots. Runtime grant state is excluded by platform design; " +
-                "snapshots cover the main profile only (Private Space apps are invisible to queries).",
+            "Requested permissions · main profile only. Runtime grants are not visible.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 8.dp),
         )
+        PrivacyExplanation("Snapshot limits", "Compares manifest permissions between two snapshots, not runtime grants. " +
+            "Private Space apps are invisible to queries. The baseline lasts while this screen is open.")
+        if (previous == null && !scanning && snapshotError == null) {
+            GlassHelperText("No baseline captured yet.")
+        }
         deltaLine?.let {
             Text(it, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 8.dp))
         }
@@ -148,6 +178,7 @@ private fun IntegritySection(context: android.content.Context, app: SelvardAppli
     val scope = rememberCoroutineScope()
     var integrity by remember { mutableStateOf<IntegritySnapshot?>(null) }
     var integrityError by remember { mutableStateOf<String?>(null) }
+    var reading by remember { mutableStateOf(false) }
 
     val source = remember {
         AndroidIntegritySource(
@@ -167,24 +198,29 @@ private fun IntegritySection(context: android.content.Context, app: SelvardAppli
 
     GlassCard(
         title = "Device integrity",
-        actionLabel = "Read integrity signals",
+        icon = SelvardIcons.Phone,
+        actionLabel = if (reading) "Reading…" else "Read device facts",
         onAction = {
-            scope.launch {
+            if (!reading) scope.launch {
+                reading = true
+                integrityError = null
                 val snap = runCatching { withContext(Dispatchers.IO) { source.integritySnapshot() } }
                 snap.onSuccess { integrity = it }.onFailure {
                     integrityError = "Integrity read failed: ${it.message ?: "unknown error"}. Nothing inferred."
                 }
+                reading = false
             }
         },
     ) {
         Text(
-            "Locally observed facts: published patch level and its age, verified-boot state where readable, " +
-                "and boots Selvard itself recorded. Play Integrity verdicts need a Play-distributed build plus " +
-                "backend verification (tracked to Phase 12) and are not claimed here.",
+            "Patch level, readable boot state and recorded boots. No Play Integrity verdict.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 8.dp),
         )
+        PrivacyExplanation("What these facts mean", "Patch age is not a vulnerability verdict. Boot records never explain why " +
+            "a restart happened. Play Integrity needs a Play-distributed build and backend verification; it is not claimed here.")
+        if (integrity == null && !reading && integrityError == null) GlassHelperText("No device facts read yet.")
         integrity?.let { snap ->
             IntegrityResult(snap)
         }
@@ -214,6 +250,19 @@ private fun IntegrityResult(snap: IntegritySnapshot) {
             modifier = Modifier.padding(top = 4.dp),
         )
     }
+}
+
+@Composable
+private fun PrivacyExplanation(title: String, explanation: String) {
+    var expanded by remember { mutableStateOf(false) }
+    TextButton(
+        onClick = { expanded = !expanded },
+        modifier = Modifier.semantics { stateDescription = if (expanded) "Expanded" else "Collapsed" },
+    ) {
+        Text(title, modifier = Modifier.weight(1f))
+        Icon(if (expanded) SelvardIcons.ChevronDown else SelvardIcons.ChevronRight, contentDescription = null)
+    }
+    if (expanded) GlassHelperText(explanation)
 }
 
 @Composable

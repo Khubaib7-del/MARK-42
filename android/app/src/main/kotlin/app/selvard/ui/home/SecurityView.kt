@@ -1,13 +1,14 @@
 package app.selvard.ui.home
 
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material.icons.rounded.Shield
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -15,64 +16,42 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import app.selvard.SelvardApplication
 import app.selvard.link.LinkEventRecorder
-import app.selvard.ui.glass.GlassCard
+import app.selvard.ui.design.SelvardIcons
 import app.selvard.ui.glass.GlassHero
 import app.selvard.ui.link.LinkCheckContent
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-/**
- * SECURITY: manual link check + posture summary, one scroll, one screen.
- * Manual checks record into the same encrypted store as the share target.
- */
+/** One scroll owner; posture belongs on Home, not inside the URL form. */
 @Composable
 fun SecurityView() {
-    val context = LocalContext.current
-    val app = context.applicationContext as SelvardApplication
+    val app = LocalContext.current.applicationContext as SelvardApplication
     val scope = rememberCoroutineScope()
-
-    androidx.compose.foundation.layout.Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
+    Column(
+        modifier = Modifier.fillMaxSize().imePadding().verticalScroll(rememberScrollState()).padding(bottom = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         GlassHero(
-            icon = Icons.Rounded.Shield,
+            icon = SelvardIcons.Link,
             iconDescription = "Link check",
-            title = "Check a link",
-            subtitle = "Paste a URL. Analysis runs on this device.",
+            title = "Check before you open",
+            subtitle = "A second look at a suspicious URL. On this device.",
         )
-        Spacer(Modifier.height(12.dp))
-        GlassCard(
-            title = "Link analysis",
-            icon = Icons.Rounded.Search,
-            iconDescription = "Link analysis",
-        ) {
-            SecurityLinkCheck(
-                app = app,
-                onAnalyzed = { url, verdict ->
-                    val event = LinkEventRecorder.toEvent(url, verdict, System.currentTimeMillis())
-                    scope.launch(Dispatchers.IO) {
-                        app.eventBus.publish(event)
-                        app.eventStore.append(event)
-                    }
-                },
-            )
-        }
-        Spacer(Modifier.height(12.dp))
-        PostureView()
+        LinkCheckContent(initialUrl = null, guardian = app.linkGuardian, onAnalyzed = { url, verdict ->
+            val event = LinkEventRecorder.toEvent(url, verdict, System.currentTimeMillis())
+            scope.launch(Dispatchers.IO) {
+                try {
+                    app.eventBus.publish(event)
+                    app.eventStore.append(event)
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                    // The visible verdict remains valid even if audit persistence is unavailable.
+                }
+            }
+        })
+        Text("You choose what to check. Selvard cannot intercept every link in other apps.",
+            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
-}
-
-@Composable
-private fun SecurityLinkCheck(
-    app: SelvardApplication,
-    onAnalyzed: (String, app.selvard.core.domain.link.LinkVerdict) -> Unit,
-) {
-    // Single verdict implementation shared with the share-target activity.
-    LinkCheckContent(
-        initialUrl = null,
-        guardian = app.linkGuardian,
-        onAnalyzed = onAnalyzed,
-    )
 }
