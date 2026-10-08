@@ -32,3 +32,13 @@ secrets/
 
 # Hoplite workspace attachments and scratch (never commit)
 .hoplite/
+
+# Local UI test caches and device diagnostics
+__pycache__/
+*.pyc
+review/emulator-polish-*.txt
+review/**/runtime-log.txt
+review/**/crash-log.txt
+review/**/exit-info.txt
+review/*window.xml
+review/*.bundle
