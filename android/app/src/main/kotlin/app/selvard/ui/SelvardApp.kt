@@ -1,5 +1,11 @@
 package app.selvard.ui
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import android.net.VpnService
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
@@ -8,116 +14,89 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Wifi
+import app.selvard.ui.design.SelvardIcons
 import androidx.compose.material3.Button
-import androidx.compose.material3.Switch
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import app.selvard.core.domain.OnboardingContent
-import app.selvard.core.domain.OnboardingPage
-import app.selvard.network.NetworkGuardianState
 import app.selvard.network.SelvardVpnService
 import app.selvard.ui.glass.GlassCard
 import app.selvard.ui.glass.GlassHero
-import app.selvard.ui.theme.SelvardTheme
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.saveable.rememberSaveable
 import app.selvard.ui.launch.BlueprintLaunchScreen
+import app.selvard.ui.launch.systemMotionScale
+import app.selvard.ui.theme.SelvardTheme
 
-private const val STAGE_CROSSFADE_MS = 600
+private const val STAGE_CROSSFADE_MS = 240
+private const val ONBOARDING_PREFERENCES = "selvard_onboarding"
+private const val ONBOARDING_COMPLETE = "disclosures_complete"
+private const val INTRO_SEEN = "intro_seen"
 
 private enum class AppStage { INTRO, ONBOARDING, HOME }
 
 @Composable
 fun SelvardApp() {
-    var showBlueprintIntro by rememberSaveable { mutableStateOf(true) }
-    var onboardingDone by rememberSaveable { mutableStateOf(false) }
+    val context = LocalContext.current
+    val preferences = remember(context) {
+        context.applicationContext.getSharedPreferences(ONBOARDING_PREFERENCES, Context.MODE_PRIVATE)
+    }
+    var showBlueprintIntro by rememberSaveable {
+        mutableStateOf(!preferences.getBoolean(INTRO_SEEN, preferences.getBoolean(ONBOARDING_COMPLETE, false)))
+    }
+    var onboardingDone by rememberSaveable {
+        mutableStateOf(preferences.getBoolean(ONBOARDING_COMPLETE, false))
+    }
+    val transitionMs = if (systemMotionScale(context) == 0f) 0 else STAGE_CROSSFADE_MS
+    val stageState = rememberSaveableStateHolder()
 
     val stage = when {
         showBlueprintIntro -> AppStage.INTRO
         onboardingDone -> AppStage.HOME
         else -> AppStage.ONBOARDING
     }
-    Crossfade(targetState = stage, animationSpec = tween(STAGE_CROSSFADE_MS), label = "app_stage") { current ->
-        when (current) {
-            AppStage.INTRO -> BlueprintLaunchScreen(onAnimationComplete = { showBlueprintIntro = false })
-            AppStage.HOME -> SelvardNav(onReplayIntro = { showBlueprintIntro = true })
-            AppStage.ONBOARDING -> SelvardTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    OnboardingPagerContent(onDone = { onboardingDone = true })
+    SelvardTheme {
+        Crossfade(targetState = stage, animationSpec = tween(transitionMs), label = "app_stage") { current ->
+            stageState.SaveableStateProvider(current.name) {
+                when (current) {
+                    AppStage.INTRO -> BlueprintLaunchScreen(onAnimationComplete = {
+                        preferences.edit().putBoolean(INTRO_SEEN, true).apply()
+                        showBlueprintIntro = false
+                        // Replay starts at frame zero; Home keeps saved navigation and scroll state.
+                        stageState.removeState(AppStage.INTRO.name)
+                    })
+                    AppStage.HOME -> SelvardNav(onReplayIntro = { showBlueprintIntro = true })
+                    AppStage.ONBOARDING -> Surface(modifier = Modifier.fillMaxSize()) {
+                        OnboardingDisclosureJourney(onDone = {
+                            // This flag records disclosure completion, never feature consent.
+                            preferences.edit().putBoolean(ONBOARDING_COMPLETE, true).apply()
+                            onboardingDone = true
+                        })
+                    }
                 }
             }
         }
     }
 }
 
-/**
- * Disclosure-first onboarding pager (USER_FLOWS F2), kept intact from
- * Phase 8. Dismissal hands off to the tab navigation; the engine-status
- * page now lives under the Settings tab instead.
- */
-@Composable
-internal fun OnboardingPagerContent(onDone: () -> Unit) {
-    var page by remember { mutableIntStateOf(0) }
-    // consent, app guardian, privacy, identity, timeline
-    val lastPage = OnboardingContent.pages.size + 4
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .systemBarsPadding()
-            .padding(horizontal = 24.dp),
-    ) {
-        FoundationBanner(modifier = Modifier.padding(top = 16.dp))
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.Center,
-        ) {
-            if (page < OnboardingContent.pages.size) {
-                OnboardingPageView(page = OnboardingContent.pages[page])
-            } else if (page == OnboardingContent.pages.size) {
-                NetworkGuardianConsentView()
-            } else if (page == OnboardingContent.pages.size + 1) {
-                AppGuardianView()
-            } else if (page == OnboardingContent.pages.size + 2) {
-                PrivacyMonitorView()
-            } else if (page == OnboardingContent.pages.size + 3) {
-                IdentityExposureView()
-            } else {
-                IncidentTimelineView()
-            }
-        }
-        NavigationRow(
-            page = page,
-            lastPage = lastPage,
-            onBack = { if (page > 0) page-- },
-            onNext = { if (page < lastPage) page++ },
-            onDone = onDone,
-        )
-    }
-}
-
-/** Network consent reused as the Network tab body (same disclosure, same switch). */
+/** Feature consent belongs in Network, not in first-run onboarding. */
 @Composable
 internal fun NetworkTabWrap() {
     Column(
@@ -126,51 +105,6 @@ internal fun NetworkTabWrap() {
             .verticalScroll(rememberScrollState()),
     ) {
         NetworkGuardianConsentView()
-    }
-}
-
-@Composable
-internal fun FoundationBanner(modifier: Modifier = Modifier) {
-    // (existing implementation unchanged; appended composables below)
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surfaceVariant,
-    ) {
-        Text(
-            text = "Selvard preview — everything runs on this device. " +
-                "Check the Home tab for what is on and what is not.",
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(12.dp),
-        )
-    }
-}
-
-@Composable
-private fun OnboardingPageView(page: OnboardingPage) {
-    Column {
-        Text(
-            text = page.title,
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.SemiBold,
-        )
-        Spacer(modifier = Modifier.height(20.dp))
-        page.points.forEach { point ->
-            Row(modifier = Modifier.padding(vertical = 6.dp)) {
-                Text(
-                    text = "—",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(end = 10.dp),
-                )
-                Text(
-                    text = point,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onBackground,
-                )
-            }
-        }
     }
 }
 
@@ -191,17 +125,22 @@ internal fun NavigationRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (page > 0) {
-            TextButton(onClick = onBack) { Text("Back") }
+            TextButton(onClick = onBack, modifier = Modifier.weight(1f).heightIn(min = 48.dp)) { Text("Back") }
         } else {
-            Spacer(modifier = Modifier.height(1.dp))
+            Spacer(modifier = Modifier.weight(1f))
         }
-        if (page < lastPage) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextButton(onClick = onDone) { Text("Skip") }
-                Button(onClick = onNext) { Text("Continue") }
-            }
-        } else {
-            Button(onClick = onDone) { Text("Enter Selvard") }
+        Button(onClick = if (page < lastPage) onNext else onDone,
+            modifier = Modifier.weight(2f).heightIn(min = 52.dp)) {
+            Text(if (page < lastPage) "Continue" else "Enter Selvard")
+        }
+    }
+}
+
+@Composable
+private fun NetworkRequestMessage(running: Boolean, message: String?) {
+    if (!running || message?.startsWith("Stop requested") == true) {
+        message?.let {
+            Text(it, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 8.dp))
         }
     }
 }
@@ -213,41 +152,66 @@ internal fun NavigationRow(
  */
 @Composable
 internal fun NetworkGuardianConsentView() {
-    val context = androidx.compose.ui.platform.LocalContext.current
+    val context = LocalContext.current
     val app = context.applicationContext as app.selvard.SelvardApplication
     val running by app.networkGuardianState.running.collectAsState()
-    Column {
+    var consentPending by rememberSaveable { mutableStateOf(false) }
+    var requestMessage by rememberSaveable { mutableStateOf<String?>(null) }
+
+    fun startFilter() {
+        requestMessage = try {
+            androidx.core.content.ContextCompat.startForegroundService(
+                context,
+                Intent(context, SelvardVpnService::class.java),
+            )
+            "Start requested. Filtering is on only when the service reports it running."
+        } catch (_: RuntimeException) {
+            "Could not start filtering. Review Android VPN settings and try again."
+        }
+    }
+
+    val vpnConsent = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        consentPending = false
+        try {
+            if (result.resultCode == Activity.RESULT_OK && VpnService.prepare(context) == null) {
+                startFilter()
+            } else {
+                requestMessage = "VPN permission was not granted. Filtering remains off."
+            }
+        } catch (_: RuntimeException) {
+            requestMessage = "Could not verify VPN permission. Try again from Network."
+        }
+    }
+    LaunchedEffect(running) { requestMessage = null }
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.padding(bottom = 24.dp)) {
         GlassHero(
-            icon = Icons.Rounded.Wifi,
+            icon = SelvardIcons.Wifi,
             iconDescription = "Network filter",
-            title = "Network Guardian",
+            title = "Network",
             subtitle = "A local filter for domain-name lookups (DNS) on this device.",
         )
-        Spacer(modifier = Modifier.height(12.dp))
         GlassCard(
             title = "What this does",
-            icon = Icons.Rounded.Wifi,
+            icon = SelvardIcons.Wifi,
             iconDescription = "What this does",
         ) {
             Text(
-                text = "When enabled, Selvard sets up a local VPN tunnel that filters " +
-                    "domain-name lookups (DNS) on this device. Lookups for known malware " +
-                    "and phishing destinations are refused. Allowed lookups are forwarded, " +
-                    "unmodified, to your device's own configured resolver.",
-                style = MaterialTheme.typography.bodyLarge,
+                text = "Selvard uses Android's VPN permission to filter DNS lookups locally. " +
+                    "Matches on the development sample list are refused; other lookups " +
+                    "go unchanged to your configured resolver.\n\n" +
+                    "Enabling this can replace another VPN. A persistent notification appears " +
+                    "while filtering runs, and the background service may increase battery use.",
+                style = MaterialTheme.typography.bodyMedium,
             )
         }
-        Spacer(modifier = Modifier.height(12.dp))
         GlassCard(
-            title = "What this does NOT do",
+            title = "Coverage limits",
         ) {
             Text(
-                text = "Selvard does not route your traffic to any server — filtering happens " +
-                    "on this device only. Only DNS lookups pass through Selvard; all other " +
-                    "traffic bypasses it entirely and is never seen by this app. Selvard " +
-                    "never inspects the content of your connections. Records of blocked " +
-                    "destinations stay on this device.",
-                style = MaterialTheme.typography.bodyLarge,
+                text = "Only DNS enters this tunnel. Other traffic bypasses Selvard; " +
+                    "IPv6 and encrypted DNS may also bypass the filter. There is no remote " +
+                    "VPN server or connection-content inspection. Block records stay on this device.",
+                style = MaterialTheme.typography.bodyMedium,
             )
             Text(
                 text = "Development sample data: filtering currently uses a bundled sample " +
@@ -257,10 +221,9 @@ internal fun NetworkGuardianConsentView() {
                 modifier = Modifier.padding(top = 8.dp),
             )
         }
-        Spacer(modifier = Modifier.height(12.dp))
         GlassCard(
-            title = if (running) "PROTECTED (local filtering)" else "OFF — not filtering",
-            icon = Icons.Rounded.Wifi,
+            title = if (running) "ON — local DNS filtering" else "OFF — not filtering",
+            icon = SelvardIcons.Wifi,
             iconDescription = "Filter state",
         ) {
             Row(
@@ -269,20 +232,39 @@ internal fun NetworkGuardianConsentView() {
             ) {
                 Switch(
                     checked = running,
+                    enabled = !consentPending,
                     onCheckedChange = { enabled ->
-                        val intent = android.content.Intent(context, SelvardVpnService::class.java)
+                        requestMessage = null
                         if (enabled) {
-                            androidx.core.content.ContextCompat.startForegroundService(context, intent)
-                            app.networkGuardianState.setRunning(true)
+                            try {
+                                val consentIntent = VpnService.prepare(context)
+                                if (consentIntent == null) {
+                                    startFilter()
+                                } else {
+                                    consentPending = true
+                                    vpnConsent.launch(consentIntent)
+                                }
+                            } catch (_: RuntimeException) {
+                                consentPending = false
+                                requestMessage = "Could not request VPN permission. Try again from Network."
+                            }
                         } else {
-                            intent.action = SelvardVpnService.ACTION_STOP
-                            context.startService(intent)
-                            app.networkGuardianState.setRunning(false)
+                            try {
+                                context.startService(
+                                    Intent(context, SelvardVpnService::class.java).apply {
+                                        action = SelvardVpnService.ACTION_STOP
+                                    },
+                                )
+                                requestMessage = "Stop requested. Waiting for the service to stop filtering."
+                            } catch (_: RuntimeException) {
+                                requestMessage = "Could not stop filtering. Review Android VPN settings."
+                            }
                         }
                     },
                 )
-                Text(if (running) "PROTECTED (local filtering)" else "OFF — not filtering")
+                Text(if (running) "ON — local DNS filtering" else "OFF — not filtering")
             }
+            NetworkRequestMessage(running, requestMessage)
         }
     }
 }

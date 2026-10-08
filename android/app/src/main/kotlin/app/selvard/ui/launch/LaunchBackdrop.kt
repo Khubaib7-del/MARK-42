@@ -62,7 +62,7 @@ internal fun DrawScope.drawLaunchBackdrop(t: Float, frame: EmblemFrame, wire: Wi
         ),
     )
     drawBlueprintGrid(t, frame.center)
-    drawBloom(t, frame.center)
+    drawBloom(t, frame)
     val wireAlpha = 1f - t.within(LaunchTimeline.WireFade)
     if (wireAlpha > 0f) drawWireframe(t, frame, wire, wireAlpha)
     val furnitureAlpha = 1f - t.within(LaunchTimeline.FurnitureFade)
@@ -73,7 +73,8 @@ internal fun DrawScope.drawLaunchBackdrop(t: Float, frame: EmblemFrame, wire: Wi
 }
 
 private fun DrawScope.drawBlueprintGrid(t: Float, center: Offset) {
-    val reveal = t.within(LaunchTimeline.Grid, LaunchTimeline.Settle)
+    val reveal = t.within(LaunchTimeline.Grid, LaunchTimeline.Settle) *
+        (1f - t.within(LaunchTimeline.FurnitureFade))
     if (reveal <= 0f) return
     val reach = (reveal * hypot(size.width, size.height) * 0.55f).coerceAtLeast(1f)
     fun fadingBrush(color: Color) = Brush.radialGradient(
@@ -94,29 +95,30 @@ private fun DrawScope.drawBlueprintGrid(t: Float, center: Offset) {
     }
 }
 
-/** The brand field expands from the mark as a circle, with a fading shock ring at its edge. */
-private fun DrawScope.drawBloom(t: Float, center: Offset) {
+/** The brand field expands from the mark, with a brief drafting ring at its edge. */
+private fun DrawScope.drawBloom(t: Float, frame: EmblemFrame) {
+    val center = frame.center
     val bloom = t.within(LaunchTimeline.Bloom, LaunchTimeline.Settle)
     if (bloom <= 0f) return
     val farthest = hypot(max(center.x, size.width - center.x), max(center.y, size.height - center.y))
     val radius = bloom * farthest * 1.02f
     val disc = Path().apply { addOval(Rect(center, radius)) }
-    clipPath(disc) { drawBrandField(t) }
+    clipPath(disc) { drawBrandField(t, frame) }
     val fade = 1f - bloom
-    drawCircle(LaunchPalette.Cream.copy(alpha = 0.55f * fade), radius, center, style = Stroke(2.dp.toPx()))
-    drawCircle(Color.White.copy(alpha = 0.25f * fade), radius * 0.88f, center, style = Stroke(1.dp.toPx()))
+    drawCircle(LaunchPalette.Cream.copy(alpha = 0.22f * fade), radius, center, style = Stroke(2.dp.toPx()))
+    drawCircle(Color.White.copy(alpha = 0.10f * fade), radius * 0.88f, center, style = Stroke(1.dp.toPx()))
 }
 
-/** Deep forest to cream with two slowly drifting light pools, as in the README banner. */
-private fun DrawScope.drawBrandField(t: Float) {
+/** A restrained organic forest field; only the space behind the unchanged ink mark is light. */
+private fun DrawScope.drawBrandField(t: Float, frame: EmblemFrame) {
     val drift = t / 9000f * 2f * PI.toFloat()
     drawRect(
         Brush.linearGradient(
             colorStops = arrayOf(
                 0f to LaunchPalette.DeepForest,
-                0.3f to LaunchPalette.MutedGreen,
-                0.62f to LaunchPalette.Sage,
-                1f to LaunchPalette.Cream,
+                0.35f to LaunchPalette.NavyCenter,
+                0.7f to LaunchPalette.NavyMid,
+                1f to LaunchPalette.DeepInk,
             ),
             start = Offset.Zero,
             end = Offset(size.width, size.height),
@@ -125,7 +127,7 @@ private fun DrawScope.drawBrandField(t: Float) {
     val light = Offset(size.width * (0.75f + 0.12f * cos(drift)), size.height * (0.32f + 0.10f * sin(drift)))
     drawRect(
         Brush.radialGradient(
-            listOf(LaunchPalette.Cream.copy(alpha = 0.55f), Color.Transparent),
+            listOf(LaunchPalette.MutedGreen.copy(alpha = 0.22f), Color.Transparent),
             center = light,
             radius = size.width * 0.9f,
         ),
@@ -136,6 +138,20 @@ private fun DrawScope.drawBrandField(t: Float) {
             listOf(LaunchPalette.DeepForest.copy(alpha = 0.7f), Color.Transparent),
             center = shade,
             radius = size.width * 0.8f,
+        ),
+    )
+    // Settle into the app's ink canvas without recoloring or shadowing the logo.
+    drawRect(LaunchPalette.DeepInk.copy(alpha = t.within(LaunchTimeline.Handoff) * 0.72f))
+    drawRect(
+        Brush.radialGradient(
+            colorStops = arrayOf(
+                0f to LaunchPalette.Cream.copy(alpha = 0.94f),
+                0.48f to LaunchPalette.Sage.copy(alpha = 0.86f),
+                0.76f to LaunchPalette.MutedGreen.copy(alpha = 0.32f),
+                1f to Color.Transparent,
+            ),
+            center = frame.center,
+            radius = frame.height * 0.98f,
         ),
     )
 }

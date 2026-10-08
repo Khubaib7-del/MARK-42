@@ -22,33 +22,33 @@ internal fun Float.pulse(inSpan: Span, outSpan: Span): Float = within(inSpan) * 
  * then set the wordmark. The mark always lands on the exact logo pixels.
  */
 internal object LaunchTimeline {
-    const val TOTAL_MS = 4900f
-    const val REDUCED_MOTION_HOLD_MS = 800L
+    const val TOTAL_MS = 3400f
+    const val REDUCED_MOTION_HOLD_MS = 400L
 
-    val Grid = Span(0f, 1100f)
-    val Corners = Span(150f, 850f)
-    val WireUpper = Span(300f, 1300f)
-    val WireLower = Span(500f, 1500f)
-    val WireCore = Span(800f, 1600f)
-    val Measure = Span(900f, 1700f)
-    val WireFade = Span(1950f, 2500f)
-    val FurnitureFade = Span(2300f, 3000f)
-    val Bloom = Span(1750f, 3000f)
-    val AssembleUpper = Span(1800f, 2650f)
-    val AssembleLower = Span(1900f, 2750f)
-    val AssembleCore = Span(2350f, 3050f)
-    val Glint = Span(2950f, 3650f)
-    val Ignite = Span(3000f, 3800f)
-    val Tagline = Span(3600f, 4100f)
-    val Principles = Span(3850f, 4350f)
-    val CaptionOneIn = Span(300f, 700f)
-    val CaptionOneOut = Span(1600f, 1850f)
-    val CaptionTwoIn = Span(1850f, 2050f)
-    val CaptionTwoOut = Span(2350f, 2550f)
+    val Grid = Span(0f, 700f)
+    val Corners = Span(100f, 600f)
+    val WireUpper = Span(200f, 900f)
+    val WireLower = Span(350f, 1050f)
+    val WireCore = Span(550f, 1150f)
+    val Measure = Span(600f, 1200f)
+    val WireFade = Span(1350f, 1750f)
+    val FurnitureFade = Span(1600f, 2100f)
+    val Bloom = Span(1200f, 2100f)
+    val AssembleUpper = Span(1250f, 1850f)
+    val AssembleLower = Span(1350f, 1950f)
+    val AssembleCore = Span(1600f, 2150f)
+    val Glint = Span(2050f, 2600f)
+    val Ignite = Span(2100f, 2700f)
+    val Tagline = Span(2450f, 2850f)
+    val Principles = Span(2650f, 3050f)
+    val Handoff = Span(3050f, TOTAL_MS)
+    val CaptionOneIn = Span(200f, 500f)
+    val CaptionOneOut = Span(1100f, 1300f)
+    val CaptionTwoIn = Span(1300f, 1450f)
+    val CaptionTwoOut = Span(1650f, 1800f)
 
-    const val WORDMARK_START_MS = 3000f
-    const val WORDMARK_STAGGER_MS = 80f
-    const val WORDMARK_LETTER_MS = 420f
+    const val WORDMARK_START_MS = 2150f
+    const val WORDMARK_LETTER_MS = 400f
 
     val Settle: Easing = FastOutSlowInEasing
     val Overshoot: Easing = CubicBezierEasing(0.2f, 1.25f, 0.4f, 1f)
@@ -56,12 +56,14 @@ internal object LaunchTimeline {
 
 /** Blueprint tones from the owner's launch concept; field tones from docs/brand/BRAND_IDENTITY.md §4. */
 internal object LaunchPalette {
-    val NavyCenter = Color(0xFF0F2636)
-    val NavyMid = Color(0xFF07131F)
-    val NavyEdge = Color(0xFF040B13)
-    val GridMinor = Color(0xFF143B52)
-    val GridMajor = Color(0xFF236080)
-    val Cyan = Color(0xFF5CD8E8)
+    val NavyCenter = Color(0xFF17352D)
+    val NavyMid = Color(0xFF0D201D)
+    val NavyEdge = Color(0xFF0C1322)
+    val GridMinor = Color(0xFF234B40)
+    val GridMajor = Color(0xFF427360)
+    val Cyan = Color(0xFFA3C9A8)
+    val OffWhite = Color(0xFFEDF1F7)
+    val Slate = Color(0xFF9FB0C6)
     val DeepForest = Color(0xFF2F5D50)
     val MutedGreen = Color(0xFF5A8F6E)
     val Sage = Color(0xFFA3C9A8)
