@@ -1,6 +1,6 @@
 # UI redesign and source review validation
 
-Date: 9 October 2026 (Asia/Karachi). Package: app.selvard. Source version remains 0.9.1-launch / versionCode 10; the review APK is identified by filename and SHA-256, not a published version. No release was published and no Git commit was created.
+Date: 9 October 2026 (Asia/Karachi). Package: app.selvard. The reviewed source was subsequently published as version 0.9.2-ui-polish / versionCode 11. The release APK is identified by its filename and attached SHA-256 checksum.
 
 ## Build and source checks
 

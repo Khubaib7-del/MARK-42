@@ -21,7 +21,7 @@ Current source review: [implemented preview scope](docs/product/MVP_SCOPE.md) an
 
 [**⬇️ Download Latest APK**](#-download--sideload-guide) • [**✨ Key Features**](#-core-guardians) • [**⚠️ Download & Install Help**](#-install-help--troubleshooting) • [**🤝 Contributing**](CONTRIBUTING.md) • [**📜 Code of Conduct**](CODE_OF_CONDUCT.md)
 
-[**Download `selvard-v0.9.1-launch.apk` (v0.9.1, launch animation)**](https://github.com/Khubaib7-del/MARK-42/releases/download/v0.9.1-launch/selvard-v0.9.1-launch.apk) — sideload on any Android 8.0+ device. The launch sequence is rebuilt around the **current Selvard logo**: a blueprint grid, a plotter pen tracing the logo, the ribbons and core assembling, then a bloom into the brand field as the wordmark sets (tap to skip). Everything else is the v0.9.0 UI refresh. Debug-signed for testing; the release notes list every honest limit of this build. Download stuck at 100%, or Play Protect blocking the install? See [install help](docs/product/INSTALL_HELP.md).
+[**Download `selvard-v0.9.2-ui-polish.apk` (v0.9.2, UI polish)**](https://github.com/Khubaib7-del/MARK-42/releases/download/v0.9.2-ui-polish/selvard-v0.9.2-ui-polish.apk) — sideload on any Android 8.0+ device. This debug test build adds the reviewed onboarding, guardian UI polish, smoother motion, local runtime diagnostics, and VPN lifecycle fixes. The release notes list its remaining limits. Download stuck at 100%, or Play Protect blocking the install? See [install help](docs/product/INSTALL_HELP.md).
 
 </div>
 
@@ -44,10 +44,10 @@ Security software can receive sensitive access to a device. Selvard prioritizes 
 ## 📦 Download & Sideload Guide
 
 ### Latest Release
-👉 [**Download `selvard-v0.9.1-launch.apk` (v0.9.1, launch animation)**](https://github.com/Khubaib7-del/MARK-42/releases/download/v0.9.1-launch/selvard-v0.9.1-launch.apk)
-- **File size**: ~17.6 MB
+👉 [**Download `selvard-v0.9.2-ui-polish.apk` (v0.9.2, UI polish)](https://github.com/Khubaib7-del/MARK-42/releases/download/v0.9.2-ui-polish/selvard-v0.9.2-ui-polish.apk)
+- **File size**: ~16.9 MB
 - **Target OS**: Android 8.0 Oreo (API 26) through Android 15 (API 35)
-- **SHA-256**: `8bf41fb264047dbddaa5cf9fa4991861d1b4e44392cdc4670b93dee734d1035a` (also attached to the release as `selvard-v0.9.1-launch.apk.sha256`)
+- **SHA-256**: `178671d92500b86c4b8df64d6148d81f2b39c9003828811838b0a1e5be397b08` (also attached to the release as `selvard-v0.9.2-ui-polish.apk.sha256`).
 
 ---
 
